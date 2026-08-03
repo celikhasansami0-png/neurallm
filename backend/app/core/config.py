@@ -1,0 +1,38 @@
+"""Application configuration, loaded from environment variables via pydantic-settings."""
+from functools import lru_cache
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    # Database
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:password@localhost:5432/neurallm"
+
+    # Supabase
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
+
+    # LLM / integrations
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    COMPOSIO_API_KEY: str = ""
+
+    # Auth
+    SECRET_KEY: str = "dev-secret-change-me"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
+
+    # CORS
+    FRONTEND_URL: str = "http://localhost:3000"
+
+    APP_NAME: str = "NeuraLLM"
+    ENV: str = "development"
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()

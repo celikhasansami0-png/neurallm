@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: "Inter", sans-serif;
+}
+
+body {
+  background: #FFFFFF;
+  color: #0A0A0A;
+}
+
+.card {
+  border: 0.5px solid #E5E5E5;
+  border-radius: 12px;
+}
+
+.control {
+  border-radius: 8px;
+}
+
+.agent-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+::selection {
+  background: #0A0A0A;
+  color: #FFFFFF;
+}
