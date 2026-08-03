@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: "Inter", sans-serif;
+  --font-cormorant: "Cormorant Garamond", serif;
+  --font-mono: "Courier New", ui-monospace, monospace;
+}
+
+body {
+  background: #0A0A0A;
+  color: #FFFFFF;
+}
+
+.card {
+  background: #111111;
+  border: 0.5px solid #1A1A1A;
+  border-radius: 12px;
+}
+
+.control {
+  border-radius: 8px;
+}
+
+.agent-name {
+  font-family: var(--font-mono), "Courier New", monospace;
+}
+
+.tool-detail {
+  font-family: var(--font-mono), "Courier New", monospace;
+}
+
+.page-title {
+  font-family: var(--font-cormorant), serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.dotted-grid line {
+  stroke-dasharray: 2 3;
+}
+
+::selection {
+  background: #FFFFFF;
+  color: #0A0A0A;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1A1A1A;
+  border-radius: 8px;
+}
