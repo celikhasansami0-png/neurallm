@@ -34,3 +34,23 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+@app.get("/debug/db-config")
+async def debug_db_config():
+    import re
+    url = settings.DATABASE_URL
+    # mask password but reveal everything else including exact username and length
+    match = re.match(r"^(?P<scheme>[^:]+)://(?P<user>[^:]+):(?P<pw>[^@]+)@(?P<host>[^/]+)/(?P<db>.+)$", url)
+    if not match:
+        return {"raw_len": len(url), "parseable": False, "raw_prefix": url[:15]}
+    return {
+        "parseable": True,
+        "scheme": match.group("scheme"),
+        "user": match.group("user"),
+        "password_len": len(match.group("pw")),
+        "password_first2": match.group("pw")[:2],
+        "password_last2": match.group("pw")[-2:],
+        "host": match.group("host"),
+        "db": match.group("db"),
+    }
