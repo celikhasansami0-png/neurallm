@@ -4,15 +4,18 @@
 
 :root {
   --font-inter: "Inter", sans-serif;
+  --font-cormorant: "Cormorant Garamond", serif;
+  --font-mono: "Courier New", ui-monospace, monospace;
 }
 
 body {
-  background: #FFFFFF;
-  color: #0A0A0A;
+  background: #0A0A0A;
+  color: #FFFFFF;
 }
 
 .card {
-  border: 0.5px solid #E5E5E5;
+  background: #111111;
+  border: 0.5px solid #1A1A1A;
   border-radius: 12px;
 }
 
@@ -21,10 +24,36 @@ body {
 }
 
 .agent-name {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono), "Courier New", monospace;
+}
+
+.tool-detail {
+  font-family: var(--font-mono), "Courier New", monospace;
+}
+
+.page-title {
+  font-family: var(--font-cormorant), serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.dotted-grid line {
+  stroke-dasharray: 2 3;
 }
 
 ::selection {
-  background: #0A0A0A;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #0A0A0A;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1A1A1A;
+  border-radius: 8px;
 }
