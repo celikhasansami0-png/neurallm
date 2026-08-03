@@ -5,12 +5,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#FFFFFF",
-        foreground: "#0A0A0A",
-        accent: "#000000",
-        border: "#E5E5E5",
-        muted: "#737373",
+        background: "#0A0A0A",
+        surface: "#111111",
+        sidebar: "#0D0D0D",
+        foreground: "#FFFFFF",
+        accent: "#FFFFFF",
+        border: "#1A1A1A",
+        muted: "#444444",
         success: "#22C55E",
+        warning: "#F59E0B",
+        error: "#F87171",
       },
       borderRadius: {
         control: "8px",
@@ -18,10 +22,20 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-inter)", "sans-serif"],
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        serif: ["var(--font-cormorant)", "serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       borderWidth: {
         DEFAULT: "0.5px",
+      },
+      keyframes: {
+        pulseGlow: {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.4", transform: "scale(0.85)" },
+        },
+      },
+      animation: {
+        "pulse-glow": "pulseGlow 1.6s ease-in-out infinite",
       },
     },
   },
