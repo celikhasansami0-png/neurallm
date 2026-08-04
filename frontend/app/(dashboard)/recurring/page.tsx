@@ -11,7 +11,7 @@ export default function RecurringPage() {
       <PageHeader
         title="Recurring"
         subtitle="Standing jobs your agents run on a schedule."
-        action={<button className="control bg-black px-4 py-2 text-sm font-medium text-white">New recurring task</button>}
+        action={<button className="control bg-white px-4 py-2 text-sm font-medium text-black">New recurring task</button>}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {mockRecurring.map((r) => (
