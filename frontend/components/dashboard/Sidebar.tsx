@@ -125,10 +125,7 @@ export function Sidebar() {
 
 function LogoIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.3" />
-      <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.3" />
-      <path d="M12 2V6M12 18V22M2 12H6M18 12H22" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/logo-32.png" alt="Quantum²" width={24} height={24} className="rounded-full" />
   );
 }
