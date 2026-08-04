@@ -29,18 +29,16 @@ class Settings(BaseSettings):
     APP_NAME: str = "NeuraLLM"
     ENV: str = "development"
 
-    # Stripe billing (degrades gracefully / raises a clear error per-feature if unset)
-    STRIPE_SECRET_KEY: str = ""
-    STRIPE_WEBHOOK_SECRET: str = ""
-    STRIPE_PRICE_TEAM: str = ""
-    STRIPE_PRICE_BUSINESS: str = ""
+    # Lemon Squeezy billing (degrades gracefully / raises a clear error per-feature if unset)
+    LEMONSQUEEZY_API_KEY: str = ""
+    LEMONSQUEEZY_STORE_ID: str = ""
+    LEMONSQUEEZY_WEBHOOK_SECRET: str = ""
+    LEMONSQUEEZY_VARIANT_TEAM: str = ""
+    LEMONSQUEEZY_VARIANT_BUSINESS: str = ""
 
-    # SMTP for email verification / password reset (falls back to logging if unset)
-    SMTP_HOST: str = ""
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    SMTP_FROM: str = "no-reply@quantum2.app"
+    # Resend for email verification / password reset (falls back to logging if unset)
+    RESEND_API_KEY: str = ""
+    RESEND_FROM_EMAIL: str = "onboarding@resend.dev"
 
 
 @lru_cache
