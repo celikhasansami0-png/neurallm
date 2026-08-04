@@ -1,4 +1,6 @@
-from sqlalchemy import Boolean, ForeignKey, String
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -16,3 +18,10 @@ class User(Base, TimestampMixin):
     full_name: Mapped[str] = mapped_column(String(255), default="")
     role: Mapped[str] = mapped_column(String(32), default="admin")  # admin | member
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Email verification + password reset (see migrations/003_email_verification.sql)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    verification_token_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reset_token_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
