@@ -57,7 +57,7 @@ export default function WorkflowsPage() {
         </div>
         <div className="mt-4 flex gap-2">
           <button onClick={addStep} className="control border border-border px-4 py-2 text-sm">Add step</button>
-          <button onClick={saveWorkflow} className="control bg-black px-4 py-2 text-sm text-white">Save workflow</button>
+          <button onClick={saveWorkflow} className="control bg-white px-4 py-2 text-sm text-black">Save workflow</button>
         </div>
       </div>
 
