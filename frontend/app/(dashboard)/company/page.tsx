@@ -48,7 +48,7 @@ export default function CompanyPage() {
             value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
             placeholder="teammate@company.com" className="control flex-1 border border-border px-3 py-2 text-sm"
           />
-          <button onClick={invite} className="control bg-black px-4 py-2 text-sm font-medium text-white">Invite</button>
+          <button onClick={invite} className="control bg-white px-4 py-2 text-sm font-medium text-black">Invite</button>
         </div>
         <div className="mt-4 divide-y divide-border">
           {team.map((t) => (
