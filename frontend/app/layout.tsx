@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   title: "Quantum² — Your company's AI operating system.",
   description:
     "Quantum² connects your tools, routes work through a company org chart of AI agents, and keeps every action auditable.",
+  icons: {
+    icon: [
+      { url: "/logo-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: "/logo-192.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
