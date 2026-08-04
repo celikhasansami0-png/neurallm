@@ -29,6 +29,19 @@ class Settings(BaseSettings):
     APP_NAME: str = "NeuraLLM"
     ENV: str = "development"
 
+    # Stripe billing (degrades gracefully / raises a clear error per-feature if unset)
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_TEAM: str = ""
+    STRIPE_PRICE_BUSINESS: str = ""
+
+    # SMTP for email verification / password reset (falls back to logging if unset)
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "no-reply@quantum2.app"
+
 
 @lru_cache
 def get_settings() -> Settings:
