@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, ChevronUp, Send } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Paperclip, ArrowUp } from "lucide-react";
 import { Badge } from "@/components/dashboard/Badge";
+import { IntegrationLogo, appLabel } from "@/components/dashboard/IntegrationLogo";
 
 // TODO: replace with live chat session pulled from /api/v1/tasks + streamed orchestrator output.
 type ToolCallRow = { id: string; label: string; detail: string };
 type ToolGroup = {
   id: string;
-  integration: string;
+  app: string;
   actionsCompleted: number;
   status: "completed" | "running" | "awaiting_approval";
   calls: ToolCallRow[];
@@ -24,31 +25,27 @@ const INITIAL_MESSAGES: Message[] = [
     content: "I routed this to CEO Office for the draft and Software Engineer for the issue check. Here's what happened:",
     groups: [
       {
-        id: "g1", integration: "Gmail", actionsCompleted: 2, status: "completed",
+        id: "g1", app: "gmail", actionsCompleted: 2, status: "completed",
         calls: [
           { id: "c1", label: "Fetched last board update thread", detail: "gmail.search_messages(query='Q3 board update')" },
-          { id: "c2", label: "Drafted follow-up email", detail: "gmail.create_draft(to='board@acme.com')" },
+          { id: "c2", label: "Drafted follow-up email", detail: "gmail.create_draft(to='board@quantum2.app')" },
         ],
       },
       {
-        id: "g2", integration: "GitHub", actionsCompleted: 1, status: "completed",
+        id: "g2", app: "github", actionsCompleted: 1, status: "completed",
         calls: [
           { id: "c3", label: "Checked open blocking issues", detail: "github.list_issues(label='blocker', state='open') -> 0 found" },
         ],
       },
       {
-        id: "g3", integration: "Gmail", actionsCompleted: 0, status: "awaiting_approval",
+        id: "g3", app: "gmail", actionsCompleted: 0, status: "awaiting_approval",
         calls: [
-          { id: "c4", label: "Send draft to board@acme.com", detail: "gmail.send_email(to='board@acme.com') — outbound, requires approval" },
+          { id: "c4", label: "Send draft to board@quantum2.app", detail: "gmail.send_email(to='board@quantum2.app') — outbound, requires approval" },
         ],
       },
     ],
   },
 ];
-
-function statusBadgeValue(status: ToolGroup["status"]) {
-  return status;
-}
 
 export default function AssistantPage() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
@@ -75,7 +72,7 @@ export default function AssistantPage() {
     <div className="flex h-[calc(100vh-3rem)] flex-col">
       <div className="mb-4 flex items-center justify-between border-b border-border pb-4">
         <div>
-          <h1 className="text-xl font-semibold">Assistant</h1>
+          <h1 className="text-lg font-bold text-white">Draft the Q3 board update</h1>
           <p className="mt-0.5 text-sm text-muted">Assistant · {totalToolsUsed} tools used</p>
         </div>
         <Badge value="running">Live</Badge>
@@ -85,12 +82,15 @@ export default function AssistantPage() {
         {messages.map((m) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
-              <div className="max-w-lg rounded-card bg-black px-4 py-3 text-sm text-white">{m.content}</div>
+              <div className="max-w-lg rounded-card bg-[#1A1A1A] px-4 py-3 text-sm text-white">{m.content}</div>
             </div>
           ) : (
             <div key={m.id} className="max-w-2xl">
-              <div className="agent-name mb-1 text-xs font-semibold text-muted">{m.agent}</div>
-              <div className="card p-4 text-sm">
+              <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[#CCCCCC]">
+                <span className="h-2 w-2 rounded-full bg-[#22C55E] animate-pulse-glow" />
+                Quantum² is working across your tools
+              </div>
+              <div className="card p-4 text-sm text-[#CCCCCC]">
                 <p>{m.content}</p>
                 <div className="mt-4 space-y-2">
                   {m.groups.map((g) => (
@@ -99,13 +99,16 @@ export default function AssistantPage() {
                         onClick={() => toggle(g.id)}
                         className="flex w-full items-center justify-between px-3 py-2"
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{g.integration}</span>
-                          <span className="text-xs text-muted">{g.actionsCompleted} actions completed</span>
+                        <div className="flex items-center gap-2.5">
+                          <IntegrationLogo app={g.app} size={28} />
+                          <div className="text-left">
+                            <div className="text-sm font-medium text-white">{appLabel(g.app)}</div>
+                            <div className="text-xs text-muted">{g.actionsCompleted} actions completed</div>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge value={statusBadgeValue(g.status)} />
-                          {expanded[g.id] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                          <Badge value={g.status} />
+                          {expanded[g.id] ? <ChevronUp size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
                         </div>
                       </button>
                       {expanded[g.id] ? (
@@ -114,8 +117,8 @@ export default function AssistantPage() {
                             <div key={c.id} className="flex items-start gap-2 py-1">
                               <Check size={14} className="mt-0.5 shrink-0 text-[#22C55E]" />
                               <div>
-                                <div className="text-sm">{c.label}</div>
-                                <div className="agent-name mt-0.5 text-xs text-muted">{c.detail}</div>
+                                <div className="text-sm text-white">{c.label}</div>
+                                <div className="tool-detail mt-0.5 text-xs text-muted">{c.detail}</div>
                               </div>
                             </div>
                           ))}
@@ -130,16 +133,19 @@ export default function AssistantPage() {
         )}
       </div>
 
-      <div className="mt-4 flex items-center gap-2 border-t border-border pt-4">
+      <div className="mt-4 flex items-center gap-2 rounded-control border border-border bg-[#111111] px-2 py-2">
+        <button className="p-2 text-muted hover:text-white">
+          <Paperclip size={16} />
+        </button>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Ask NeuraLLM anything… (@ to mention an agent)"
-          className="control flex-1 border border-border px-4 py-3 text-sm outline-none focus:border-black"
+          placeholder="Ask Quantum² anything… (@ to mention an agent)"
+          className="flex-1 bg-transparent text-sm text-white placeholder:text-muted outline-none"
         />
-        <button onClick={handleSend} className="control bg-black p-3 text-white">
-          <Send size={16} />
+        <button onClick={handleSend} className="control bg-white p-2 text-black">
+          <ArrowUp size={16} />
         </button>
       </div>
     </div>
