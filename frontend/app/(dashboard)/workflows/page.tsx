@@ -1,39 +1,88 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
-import { mockAgents } from "@/lib/mock-data";
-// TODO: replace with live API call to /api/v1/workflows
+import { api } from "@/lib/api";
 
 const ACTIONS = ["Draft document", "Send for approval", "Post update", "Create GitHub issue", "Summarize thread"];
 
-type Step = { agent: string; action: string };
+type Step = { agent_id: string; action: string };
 
 export default function WorkflowsPage() {
+  const [agents, setAgents] = useState<any[]>([]);
+  const [workflows, setWorkflows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [runningId, setRunningId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
   const [name, setName] = useState("");
-  const [chain, setChain] = useState<Step[]>([{ agent: mockAgents[0].name, action: ACTIONS[0] }]);
-  const [workflows, setWorkflows] = useState<{ name: string; chain: Step[] }[]>([
-    { name: "New hire onboarding", chain: [{ agent: "CEO Office", action: "Draft document" }, { agent: "Product Manager", action: "Post update" }] },
-  ]);
+  const [chain, setChain] = useState<Step[]>([]);
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const [agentsRes, workflowsRes] = await Promise.all([api.agents(), api.workflows()]);
+      setAgents(agentsRes || []);
+      setWorkflows(workflowsRes || []);
+      if ((agentsRes || []).length > 0) {
+        setChain([{ agent_id: agentsRes[0].id, action: ACTIONS[0] }]);
+      }
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || "Failed to load workflows.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const agentNameById = useMemo(() => Object.fromEntries(agents.map((a) => [a.id, a.name])), [agents]);
 
   function addStep() {
-    setChain((c) => [...c, { agent: mockAgents[0].name, action: ACTIONS[0] }]);
+    if (agents.length === 0) return;
+    setChain((c) => [...c, { agent_id: agents[0].id, action: ACTIONS[0] }]);
   }
 
   function updateStep(i: number, field: keyof Step, value: string) {
     setChain((c) => c.map((s, idx) => (idx === i ? { ...s, [field]: value } : s)));
   }
 
-  function saveWorkflow() {
-    if (!name.trim()) return;
-    setWorkflows((w) => [...w, { name, chain }]);
-    setName("");
-    setChain([{ agent: mockAgents[0].name, action: ACTIONS[0] }]);
+  async function saveWorkflow() {
+    if (!name.trim() || chain.length === 0) return;
+    setSaving(true);
+    try {
+      await api.createWorkflow({ name, chain });
+      setName("");
+      setChain(agents.length > 0 ? [{ agent_id: agents[0].id, action: ACTIONS[0] }] : []);
+      await load();
+    } catch (err: any) {
+      setError(err.message || "Failed to save workflow.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function runWorkflow(id: string) {
+    setRunningId(id);
+    try {
+      await api.runWorkflow(id);
+      await load();
+    } catch (err: any) {
+      setError(err.message || "Failed to run workflow.");
+    } finally {
+      setRunningId(null);
+    }
   }
 
   return (
     <div>
       <PageHeader title="Workflows" subtitle="Chain agents together into a repeatable, ordered sequence." />
+
+      {error ? <p className="mb-4 text-sm text-[#F87171]">{error}</p> : null}
 
       <div className="card p-5">
         <div className="text-sm font-semibold">Build a workflow</div>
@@ -45,8 +94,8 @@ export default function WorkflowsPage() {
           {chain.map((step, i) => (
             <div key={i} className="flex items-center gap-2 text-sm">
               <span className="text-xs text-muted">{i + 1}.</span>
-              <select value={step.agent} onChange={(e) => updateStep(i, "agent", e.target.value)} className="control border border-border px-2 py-1.5 text-sm">
-                {mockAgents.map((a) => <option key={a.id} value={a.name}>{a.name}</option>)}
+              <select value={step.agent_id} onChange={(e) => updateStep(i, "agent_id", e.target.value)} className="control border border-border px-2 py-1.5 text-sm">
+                {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
               <span className="text-muted">→</span>
               <select value={step.action} onChange={(e) => updateStep(i, "action", e.target.value)} className="control border border-border px-2 py-1.5 text-sm">
@@ -54,29 +103,52 @@ export default function WorkflowsPage() {
               </select>
             </div>
           ))}
+          {chain.length === 0 && !loading ? (
+            <p className="text-xs text-muted">Create an agent first under Agents to build a workflow.</p>
+          ) : null}
         </div>
         <div className="mt-4 flex gap-2">
-          <button onClick={addStep} className="control border border-border px-4 py-2 text-sm">Add step</button>
-          <button onClick={saveWorkflow} className="control bg-white px-4 py-2 text-sm text-black">Save workflow</button>
+          <button onClick={addStep} disabled={agents.length === 0} className="control border border-border px-4 py-2 text-sm disabled:opacity-50">Add step</button>
+          <button onClick={saveWorkflow} disabled={saving || chain.length === 0} className="control bg-white px-4 py-2 text-sm text-black disabled:opacity-50">
+            {saving ? "Saving…" : "Save workflow"}
+          </button>
         </div>
       </div>
 
       <div className="mt-8 space-y-4">
-        {workflows.map((w, i) => (
-          <div key={i} className="card p-5">
-            <div className="text-sm font-semibold">{w.name}</div>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
-              {w.chain.map((s, idx) => (
-                <span key={idx} className="flex items-center gap-2">
-                  <span className="agent-name">{s.agent}</span>
-                  <span className="text-xs">({s.action})</span>
-                  {idx < w.chain.length - 1 ? <span>→</span> : null}
-                </span>
-              ))}
+        {loading ? (
+          <div className="py-10 text-center text-sm text-muted">Loading workflows…</div>
+        ) : workflows.length === 0 ? (
+          <div className="card p-10 text-center text-sm text-muted">No workflows yet. Build one above.</div>
+        ) : (
+          workflows.map((w) => (
+            <div key={w.id} className="card p-5">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold">{w.name}</div>
+                <span className="text-xs text-muted">{w.status}</span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
+                {(w.chain || []).map((s: any, idx: number) => (
+                  <span key={idx} className="flex items-center gap-2">
+                    <span className="agent-name">{agentNameById[s.agent_id] || s.agent_id}</span>
+                    <span className="text-xs">({s.action})</span>
+                    {idx < w.chain.length - 1 ? <span>→</span> : null}
+                  </span>
+                ))}
+              </div>
+              {w.last_run_result?.summary ? (
+                <p className="mt-2 text-xs text-muted">{w.last_run_result.summary}</p>
+              ) : null}
+              <button
+                onClick={() => runWorkflow(w.id)}
+                disabled={runningId === w.id}
+                className="control mt-3 border border-border px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+              >
+                {runningId === w.id ? "Running…" : "Run now"}
+              </button>
             </div>
-            <button className="control mt-3 border border-border px-3 py-1.5 text-xs font-medium">Run now</button>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
