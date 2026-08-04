@@ -1,16 +1,19 @@
 import { cn } from "@/lib/utils";
 
 const STYLES: Record<string, string> = {
-  low: "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]",
-  medium: "bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]",
-  high: "bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]",
-  completed: "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]",
-  running: "bg-[#EFF6FF] text-[#1E40AF] border-[#BFDBFE]",
-  awaiting_approval: "bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]",
-  pending: "bg-[#F5F5F5] text-[#404040] border-[#E5E5E5]",
-  rejected: "bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]",
-  indexed: "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]",
-  processing: "bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]",
+  low: "bg-[#1A2E1F] text-[#22C55E] border-[#22C55E]/30",
+  medium: "bg-[#2E2410] text-[#F59E0B] border-[#F59E0B]/30",
+  high: "bg-[#2E1414] text-[#F87171] border-[#F87171]/30",
+  completed: "bg-[#1A2E1F] text-[#22C55E] border-[#22C55E]/30",
+  running: "bg-[#1A1A1A] text-[#FFFFFF] border-[#333333]",
+  awaiting_approval: "bg-[#2E2410] text-[#F59E0B] border-[#F59E0B]/30",
+  needs_approval: "bg-[#2E2410] text-[#F59E0B] border-[#F59E0B]/30",
+  pending: "bg-[#1A1A1A] text-[#444444] border-[#1A1A1A]",
+  rejected: "bg-[#2E1414] text-[#F87171] border-[#F87171]/30",
+  failed: "bg-[#2E1414] text-[#F87171] border-[#F87171]/30",
+  indexed: "bg-[#1A2E1F] text-[#22C55E] border-[#22C55E]/30",
+  processing: "bg-[#2E2410] text-[#F59E0B] border-[#F59E0B]/30",
+  active: "bg-[#1A2E1F] text-[#22C55E] border-[#22C55E]/30",
 };
 
 export function Badge({ value, children }: { value: string; children?: React.ReactNode }) {
