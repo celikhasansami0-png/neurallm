@@ -1,84 +1,96 @@
 "use client";
 
-import { useState } from "react";
-import { Check, ChevronDown, ChevronUp, Paperclip, ArrowUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, ChevronDown, ChevronUp, ArrowUp } from "lucide-react";
 import { Badge } from "@/components/dashboard/Badge";
-import { IntegrationLogo, appLabel } from "@/components/dashboard/IntegrationLogo";
+import { api } from "@/lib/api";
 
-// TODO: replace with live chat session pulled from /api/v1/tasks + streamed orchestrator output.
-type ToolCallRow = { id: string; label: string; detail: string };
-type ToolGroup = {
-  id: string;
-  app: string;
-  actionsCompleted: number;
-  status: "completed" | "running" | "awaiting_approval";
-  calls: ToolCallRow[];
-};
 type Message =
   | { id: string; role: "user"; content: string }
-  | { id: string; role: "agent"; agent: string; content: string; groups: ToolGroup[] };
-
-const INITIAL_MESSAGES: Message[] = [
-  { id: "m1", role: "user", content: "Draft the Q3 board update and check for any blocking GitHub issues before I send it." },
-  {
-    id: "m2", role: "agent", agent: "CEO",
-    content: "I routed this to CEO Office for the draft and Software Engineer for the issue check. Here's what happened:",
-    groups: [
-      {
-        id: "g1", app: "gmail", actionsCompleted: 2, status: "completed",
-        calls: [
-          { id: "c1", label: "Fetched last board update thread", detail: "gmail.search_messages(query='Q3 board update')" },
-          { id: "c2", label: "Drafted follow-up email", detail: "gmail.create_draft(to='board@quantum2.app')" },
-        ],
-      },
-      {
-        id: "g2", app: "github", actionsCompleted: 1, status: "completed",
-        calls: [
-          { id: "c3", label: "Checked open blocking issues", detail: "github.list_issues(label='blocker', state='open') -> 0 found" },
-        ],
-      },
-      {
-        id: "g3", app: "gmail", actionsCompleted: 0, status: "awaiting_approval",
-        calls: [
-          { id: "c4", label: "Send draft to board@quantum2.app", detail: "gmail.send_email(to='board@quantum2.app') — outbound, requires approval" },
-        ],
-      },
-    ],
-  },
-];
+  | { id: string; role: "agent"; agent: string; content: string; task: any };
 
 export default function AssistantPage() {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({ g1: true, g2: true, g3: true });
+  const [sending, setSending] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
 
-  const totalToolsUsed = messages
-    .filter((m): m is Extract<Message, { role: "agent" }> => m.role === "agent")
-    .reduce((sum, m) => sum + m.groups.reduce((s, g) => s + g.calls.length, 0), 0);
+  useEffect(() => {
+    api.agents().then(setAgents).catch(() => setAgents([]));
+  }, []);
+
+  const totalStepsUsed = useMemo(
+    () =>
+      messages
+        .filter((m): m is Extract<Message, { role: "agent" }> => m.role === "agent")
+        .reduce((sum, m) => sum + (m.task?.plan?.length || 0), 0),
+    [messages]
+  );
 
   function toggle(id: string) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  function handleSend() {
-    if (!input.trim()) return;
-    const userMsg: Message = { id: `u-${Date.now()}`, role: "user", content: input };
+  async function handleSend() {
+    if (!input.trim() || sending) return;
+    if (agents.length === 0) {
+      setError("No agents available yet. Create one under Agents first.");
+      return;
+    }
+    const content = input;
+    const userMsg: Message = { id: `u-${Date.now()}`, role: "user", content };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
-    // TODO: POST to /api/v1/tasks and stream the orchestrator's response back into this thread.
+    setSending(true);
+    setError(null);
+
+    try {
+      // Route to the CEO by default (mirrors the backend's fallback route - see
+      // app/services/langgraph_router.py); a dedicated streaming chat endpoint would replace
+      // this with real routing once the orchestrator exposes one.
+      const target = agents.find((a) => a.name === "CEO") || agents[0];
+      const task = await api.createTask({ agent_id: target.id, title: content });
+      const agentMsg: Message = {
+        id: `a-${task.id}`,
+        role: "agent",
+        agent: target.name,
+        content:
+          task.status === "awaiting_approval"
+            ? `This request needs human approval before ${target.name} can proceed. Check Approvals.`
+            : task.status === "failed"
+            ? `${target.name} hit an error while working on this.`
+            : `${target.name} worked through this task. Here's what happened:`,
+        task,
+      };
+      setMessages((prev) => [...prev, agentMsg]);
+      setExpanded((prev) => ({ ...prev, [agentMsg.id]: true }));
+    } catch (err: any) {
+      setError(err.message || "Failed to send message.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
     <div className="flex h-[calc(100vh-3rem)] flex-col">
       <div className="mb-4 flex items-center justify-between border-b border-border pb-4">
         <div>
-          <h1 className="text-lg font-bold text-white">Draft the Q3 board update</h1>
-          <p className="mt-0.5 text-sm text-muted">Assistant · {totalToolsUsed} tools used</p>
+          <h1 className="text-lg font-bold text-white">Assistant</h1>
+          <p className="mt-0.5 text-sm text-muted">{totalStepsUsed} plan steps run this session</p>
         </div>
-        <Badge value="running">Live</Badge>
+        {sending ? <Badge value="running">Working</Badge> : null}
       </div>
 
+      {error ? <p className="mb-3 text-sm text-[#F87171]">{error}</p> : null}
+
       <div className="flex-1 space-y-6 overflow-y-auto pr-1">
+        {messages.length === 0 ? (
+          <div className="py-16 text-center text-sm text-muted">
+            Ask Quantum² to do something — e.g. "Draft the Q3 board update".
+          </div>
+        ) : null}
         {messages.map((m) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
@@ -88,45 +100,40 @@ export default function AssistantPage() {
             <div key={m.id} className="max-w-2xl">
               <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[#CCCCCC]">
                 <span className="h-2 w-2 rounded-full bg-[#22C55E] animate-pulse-glow" />
-                Quantum² is working across your tools
+                {m.agent} · Quantum²
               </div>
               <div className="card p-4 text-sm text-[#CCCCCC]">
                 <p>{m.content}</p>
-                <div className="mt-4 space-y-2">
-                  {m.groups.map((g) => (
-                    <div key={g.id} className="rounded-control border border-border">
-                      <button
-                        onClick={() => toggle(g.id)}
-                        className="flex w-full items-center justify-between px-3 py-2"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <IntegrationLogo app={g.app} size={28} />
-                          <div className="text-left">
-                            <div className="text-sm font-medium text-white">{appLabel(g.app)}</div>
-                            <div className="text-xs text-muted">{g.actionsCompleted} actions completed</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge value={g.status} />
-                          {expanded[g.id] ? <ChevronUp size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
-                        </div>
-                      </button>
-                      {expanded[g.id] ? (
-                        <div className="space-y-1 border-t border-border px-3 py-2">
-                          {g.calls.map((c) => (
-                            <div key={c.id} className="flex items-start gap-2 py-1">
-                              <Check size={14} className="mt-0.5 shrink-0 text-[#22C55E]" />
-                              <div>
-                                <div className="text-sm text-white">{c.label}</div>
-                                <div className="tool-detail mt-0.5 text-xs text-muted">{c.detail}</div>
-                              </div>
+                {m.task?.plan?.length > 0 ? (
+                  <div className="mt-4 space-y-2">
+                    <button
+                      onClick={() => toggle(m.id)}
+                      className="flex w-full items-center justify-between rounded-control border border-border px-3 py-2"
+                    >
+                      <div className="text-left">
+                        <div className="text-sm font-medium text-white">Execution plan</div>
+                        <div className="text-xs text-muted">{m.task.plan.length} steps</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge value={m.task.status} />
+                        {expanded[m.id] ? <ChevronUp size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
+                      </div>
+                    </button>
+                    {expanded[m.id] ? (
+                      <div className="space-y-1 rounded-control border border-border px-3 py-2">
+                        {m.task.plan.map((s: any, i: number) => (
+                          <div key={i} className="flex items-start gap-2 py-1">
+                            <Check size={14} className="mt-0.5 shrink-0 text-[#22C55E]" />
+                            <div>
+                              <div className="text-sm text-white">{s.description}</div>
+                              {s.tool ? <div className="tool-detail mt-0.5 text-xs text-muted">{s.tool}</div> : null}
                             </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             </div>
           )
@@ -134,17 +141,15 @@ export default function AssistantPage() {
       </div>
 
       <div className="mt-4 flex items-center gap-2 rounded-control border border-border bg-[#111111] px-2 py-2">
-        <button className="p-2 text-muted hover:text-white">
-          <Paperclip size={16} />
-        </button>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Ask Quantum² anything… (@ to mention an agent)"
-          className="flex-1 bg-transparent text-sm text-white placeholder:text-muted outline-none"
+          placeholder="Ask Quantum² anything…"
+          disabled={sending}
+          className="flex-1 bg-transparent text-sm text-white placeholder:text-muted outline-none disabled:opacity-50"
         />
-        <button onClick={handleSend} className="control bg-white p-2 text-black">
+        <button onClick={handleSend} disabled={sending} className="control bg-white p-2 text-black disabled:opacity-50">
           <ArrowUp size={16} />
         </button>
       </div>
