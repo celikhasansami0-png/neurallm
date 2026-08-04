@@ -1,8 +1,15 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import agents, audit, auth, integrations, knowledge, recurring, roi, tasks, webhooks, workflows
+from app.routers import (
+    agents, audit, auth, billing, integrations, knowledge, recurring, roi, tasks, webhooks, workflows,
+)
+from app.services.scheduler import start_scheduler, stop_scheduler
+
+logger = logging.getLogger("quantum2.main")
 
 app = FastAPI(title="NeuraLLM API", version="0.1.0")
 
@@ -24,6 +31,23 @@ app.include_router(knowledge.router)
 app.include_router(audit.router)
 app.include_router(roi.router)
 app.include_router(webhooks.router)
+app.include_router(billing.router)
+
+
+@app.on_event("startup")
+async def on_startup():
+    try:
+        start_scheduler()
+    except Exception:
+        logger.exception("Failed to start the recurring-task scheduler; recurring tasks will not auto-run.")
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    try:
+        stop_scheduler()
+    except Exception:
+        logger.exception("Failed to shut down the recurring-task scheduler cleanly.")
 
 
 @app.get("/")
