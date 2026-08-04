@@ -17,9 +17,15 @@ class Tenant(Base, TimestampMixin):
     data_region: Mapped[str] = mapped_column(String(32), default="us")
     plan: Mapped[str] = mapped_column(String(32), default="trial")
 
-    # Stripe billing (see migrations/002_billing.sql)
+    # Legacy Stripe billing columns (see migrations/002_billing.sql) - unused, kept for
+    # backwards compatibility with existing rows; the app no longer reads/writes these.
     stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    # Lemon Squeezy billing (see migrations/005_lemonsqueezy.sql)
+    lemonsqueezy_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    lemonsqueezy_subscription_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     subscription_status: Mapped[str] = mapped_column(String(32), default="trialing")
 
