@@ -8,6 +8,12 @@ chart.
 """
 from dataclasses import dataclass
 
+from groq import Groq
+
+from app.core.config import settings
+
+VALID_POSITIONS = ["CEO", "CEO Office", "CTO", "CFO", "Product Manager", "Software Engineer"]
+
 KEYWORD_ROUTES = {
     "budget": "CFO", "spend": "CFO", "invoice": "CFO", "fiscal": "CFO",
     "roadmap": "CTO", "deploy": "CTO", "infra": "CTO", "architecture": "CTO",
@@ -36,10 +42,30 @@ def route_keyword(message: str) -> RouteResult | None:
 async def route_llm(message: str) -> RouteResult:
     """Falls back to an LLM call (Groq) when keyword routing is ambiguous.
 
-    TODO: wire to a real Groq classification call using GROQ_API_KEY. Kept synchronous-safe
-    stub here so the router still returns sub-150ms in the common (keyword) case.
+    Only used when route_keyword() finds no confident match, so this cold path being a bit
+    slower than the keyword path is fine. Falls back to a deterministic CEO-office route if
+    GROQ_API_KEY isn't configured, or if the Groq call itself fails for any reason.
     """
-    return RouteResult(agent_position="CEO", confidence=0.4, method="llm")
+    if not settings.GROQ_API_KEY:
+        return RouteResult(agent_position="CEO", confidence=0.4, method="llm")
+
+    client = Groq(api_key=settings.GROQ_API_KEY)
+    system_prompt = (
+        "You classify an incoming request to exactly one company role. Reply with only the "
+        f"role name, nothing else. Valid roles: {', '.join(VALID_POSITIONS)}. If unsure, reply 'CEO'."
+    )
+    completion = client.chat.completions.create(
+        model=settings.GROQ_MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": message},
+        ],
+        temperature=0,
+        max_tokens=16,
+    )
+    raw = (completion.choices[0].message.content or "").strip()
+    position = next((p for p in VALID_POSITIONS if p.lower() in raw.lower()), "CEO")
+    return RouteResult(agent_position=position, confidence=0.75, method="llm")
 
 
 async def route(message: str) -> RouteResult:

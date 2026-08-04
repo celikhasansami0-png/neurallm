@@ -34,5 +34,30 @@ class ComposioService:
         connection = entity.initiate_connection(app_name=tool_slug)
         return {"redirect_url": connection.redirectUrl, "status": "pending"}
 
+    def is_live(self) -> bool:
+        return self._toolset is not None
+
+    def execute_action(self, action: str, params: dict, tenant_id: str) -> dict:
+        """Execute a single Composio action for a tenant's connected entity.
+
+        Falls back to a deterministic stub result when Composio isn't configured (no API
+        key / package not installed), so the executor pipeline still runs end to end in
+        local dev or before a tenant has connected any tools.
+        """
+        if not self._toolset:
+            return {
+                "executed": False,
+                "stub": True,
+                "action": action,
+                "message": f"Composio not configured - stubbed execution of {action}",
+                "input": params,
+            }
+        try:
+            entity = self._toolset.get_entity(id=tenant_id)
+            result = entity.execute_action(action=action, params=params)
+            return {"executed": True, "stub": False, "action": action, "output": result}
+        except Exception as exc:  # keep the executor pipeline resilient to provider errors
+            return {"executed": False, "stub": False, "action": action, "error": str(exc), "input": params}
+
 
 composio_service = ComposioService()

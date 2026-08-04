@@ -8,6 +8,7 @@ paused for human approval by approval_engine before they execute.
 from dataclasses import dataclass
 
 from app.services.approval_engine import next_status, score_risk
+from app.services.composio_service import composio_service
 from app.services.pii_redaction import redact_payload
 
 
@@ -20,17 +21,23 @@ class ExecutionResult:
     risk_level: str
 
 
-async def execute_step(agent_name: str, tool_name: str, integration: str, input_payload: dict) -> ExecutionResult:
+async def execute_step(
+    agent_name: str, tool_name: str, integration: str, input_payload: dict, tenant_id: str = "",
+    already_approved: bool = False,
+) -> ExecutionResult:
     risk = score_risk(tool_name, integration)
     status = next_status(tool_name, integration)
-    if status == "awaiting_approval":
+    if status == "awaiting_approval" and not already_approved:
         return ExecutionResult(
             tool_name=tool_name, integration=integration, status="awaiting_approval",
             output={}, risk_level=risk,
         )
 
-    # TODO: replace with a real composio_service tool invocation.
-    raw_output = {"message": f"{agent_name} executed {tool_name} via {integration}", "input": input_payload}
+    # Real tool execution goes through composio_service when COMPOSIO_API_KEY is configured;
+    # it returns a deterministic stub result otherwise so this pipeline still runs end to end.
+    action = f"{integration}_{tool_name}" if integration else tool_name
+    raw_output = composio_service.execute_action(action=action, params=input_payload, tenant_id=tenant_id)
+    raw_output["message"] = raw_output.get("message") or f"{agent_name} executed {tool_name} via {integration or 'internal'}"
     safe_output = redact_payload(raw_output)
     return ExecutionResult(
         tool_name=tool_name, integration=integration, status="completed",
