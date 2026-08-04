@@ -1,34 +1,107 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { IntegrationLogo } from "@/components/dashboard/IntegrationLogo";
-import { mockIntegrations } from "@/lib/mock-data";
 import { Search } from "lucide-react";
-// TODO: replace with live API call to /api/v1/integrations + POST connect
+import { api } from "@/lib/api";
 
 const CATEGORIES = ["All", "Email", "Calendar", "Engineering", "Communication", "Docs", "CRM", "Finance"];
 
+// Catalog of apps a tenant can connect through Composio. Whether each one is actually
+// connected comes from the backend (/api/v1/integrations), not this static list.
+const CATALOG = [
+  { name: "Gmail", slug: "gmail", category: "Email" },
+  { name: "Google Calendar", slug: "googlecalendar", category: "Calendar" },
+  { name: "GitHub", slug: "github", category: "Engineering" },
+  { name: "Slack", slug: "slack", category: "Communication" },
+  { name: "Notion", slug: "notion", category: "Docs" },
+  { name: "Linear", slug: "linear", category: "Engineering" },
+  { name: "Salesforce", slug: "salesforce", category: "CRM" },
+  { name: "HubSpot", slug: "hubspot", category: "CRM" },
+  { name: "Stripe", slug: "stripe", category: "Finance" },
+  { name: "Zoom", slug: "zoom", category: "Communication" },
+  { name: "Google Drive", slug: "googledrive", category: "Docs" },
+  { name: "Jira", slug: "jira", category: "Engineering" },
+  { name: "Airtable", slug: "airtable", category: "Docs" },
+  { name: "Trello", slug: "trello", category: "Engineering" },
+  { name: "Asana", slug: "asana", category: "Engineering" },
+  { name: "ClickUp", slug: "clickup", category: "Engineering" },
+  { name: "Discord", slug: "discord", category: "Communication" },
+  { name: "Figma", slug: "figma", category: "Docs" },
+  { name: "Shopify", slug: "shopify", category: "Finance" },
+  { name: "LinkedIn", slug: "linkedin", category: "Communication" },
+  { name: "Mailchimp", slug: "mailchimp", category: "Email" },
+  { name: "Outlook", slug: "outlook", category: "Email" },
+];
+
 export default function IntegrationsPage() {
+  const [connections, setConnections] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [connectingSlug, setConnectingSlug] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const res = await api.integrations();
+      setConnections(res || []);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || "Failed to load integrations.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const connectedSlugs = useMemo(() => new Set(connections.map((c) => c.tool_slug)), [connections]);
+
   const filtered = useMemo(
     () =>
-      mockIntegrations.filter(
-        (i) =>
-          (category === "All" || i.category === category) &&
-          i.name.toLowerCase().includes(query.toLowerCase())
+      CATALOG.filter(
+        (i) => (category === "All" || i.category === category) && i.name.toLowerCase().includes(query.toLowerCase())
       ),
     [query, category]
   );
 
-  const connected = filtered.filter((i) => i.connected);
-  const popular = filtered.filter((i) => !i.connected);
+  const connected = filtered.filter((i) => connectedSlugs.has(i.slug));
+  const popular = filtered.filter((i) => !connectedSlugs.has(i.slug));
+
+  async function connect(app: (typeof CATALOG)[number]) {
+    setConnectingSlug(app.slug);
+    try {
+      const res = await api.connectIntegration({ tool_slug: app.slug, display_name: app.name, category: app.category });
+      if (res?.redirect_url) {
+        window.open(res.redirect_url, "_blank");
+      }
+      await load();
+    } catch (err: any) {
+      setError(err.message || "Failed to start connection.");
+    } finally {
+      setConnectingSlug(null);
+    }
+  }
+
+  async function disconnect(connectionId: string) {
+    try {
+      await api.disconnectIntegration(connectionId);
+      await load();
+    } catch (err: any) {
+      setError(err.message || "Failed to disconnect.");
+    }
+  }
 
   return (
     <div>
       <PageHeader title="Integrations" subtitle="Connect the tools your agents need through secure OAuth (powered by Composio)." />
+
+      {error ? <p className="mb-4 text-sm text-[#F87171]">{error}</p> : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="control flex flex-1 items-center gap-2 border border-border bg-[#111111] px-3 py-2">
@@ -50,43 +123,63 @@ export default function IntegrationsPage() {
         </div>
       </div>
 
-      {connected.length > 0 ? (
-        <div className="mt-8">
-          <div className="mb-3 text-sm font-semibold text-white">Connected</div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {connected.map((i) => (
-              <div key={i.name} className="card flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <IntegrationLogo app={i.slug} size={28} />
-                  <div>
-                    <div className="text-sm font-medium text-white">{i.name}</div>
-                    <div className="text-xs text-muted">{i.category}</div>
-                  </div>
-                </div>
-                <span className="text-xs font-medium text-[#22C55E]">Connected</span>
+      {loading ? (
+        <div className="py-20 text-center text-sm text-muted">Loading integrations…</div>
+      ) : (
+        <>
+          {connected.length > 0 ? (
+            <div className="mt-8">
+              <div className="mb-3 text-sm font-semibold text-white">Connected</div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {connected.map((i) => {
+                  const conn = connections.find((c) => c.tool_slug === i.slug);
+                  return (
+                    <div key={i.slug} className="card flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <IntegrationLogo app={i.slug} size={28} />
+                        <div>
+                          <div className="text-sm font-medium text-white">{i.name}</div>
+                          <div className="text-xs text-muted">{i.category}</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => conn && disconnect(conn.id)}
+                        className="text-xs font-medium text-[#22C55E] hover:text-[#F87171]"
+                      >
+                        Connected
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="mt-8">
-        <div className="mb-3 text-sm font-semibold text-white">Popular</div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {popular.map((i) => (
-            <div key={i.name} className="card flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <IntegrationLogo app={i.slug} size={28} />
-                <div>
-                  <div className="text-sm font-medium text-white">{i.name}</div>
-                  <div className="text-xs text-muted">{i.category}</div>
-                </div>
-              </div>
-              <button className="control border border-border px-3 py-1.5 text-xs font-medium text-[#CCCCCC]">Connect</button>
             </div>
-          ))}
-        </div>
-      </div>
+          ) : null}
+
+          <div className="mt-8">
+            <div className="mb-3 text-sm font-semibold text-white">Popular</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {popular.map((i) => (
+                <div key={i.slug} className="card flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    <IntegrationLogo app={i.slug} size={28} />
+                    <div>
+                      <div className="text-sm font-medium text-white">{i.name}</div>
+                      <div className="text-xs text-muted">{i.category}</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => connect(i)}
+                    disabled={connectingSlug === i.slug}
+                    className="control border border-border px-3 py-1.5 text-xs font-medium text-[#CCCCCC] disabled:opacity-50"
+                  >
+                    {connectingSlug === i.slug ? "Connecting…" : "Connect"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
