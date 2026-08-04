@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -10,6 +12,7 @@ from app.models.audit_log import AuditLog
 from app.models.task import Task
 from app.models.user import User
 from app.services.approval_engine import score_risk
+from app.services.orchestrator import run_task_to_completion
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
@@ -30,6 +33,8 @@ class TaskOut(BaseModel):
     approved_by: str | None
     result: dict
     plan: list
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -60,6 +65,12 @@ async def create_task(
     ))
     await db.commit()
     await db.refresh(task)
+
+    # Low/medium risk tasks run immediately; high-risk tasks stay awaiting_approval until a
+    # human approves them (see approve_task below).
+    if task.status == "pending" and agent is not None:
+        task = await run_task_to_completion(db, task, agent, tenant_id)
+
     return task
 
 
@@ -98,6 +109,12 @@ async def approve_task(
     ))
     await db.commit()
     await db.refresh(task)
+
+    agent_result = await db.execute(select(Agent).where(Agent.id == task.agent_id))
+    agent = agent_result.scalar_one_or_none()
+    if agent is not None:
+        task = await run_task_to_completion(db, task, agent, tenant_id)
+
     return task
 
 
