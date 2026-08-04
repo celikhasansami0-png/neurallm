@@ -77,7 +77,7 @@ export default function SettingsPage() {
         window.location.href = res.checkout_url;
       }
     } catch (err: any) {
-      setBillingError(err.message || "Failed to start checkout. Stripe may not be configured yet.");
+      setBillingError(err.message || "Failed to start checkout. Billing may not be configured yet.");
     } finally {
       setCheckoutLoading(null);
     }
@@ -125,20 +125,20 @@ export default function SettingsPage() {
                 <span className="text-xs text-[#F59E0B]">{trialDaysLeft} day{trialDaysLeft === 1 ? "" : "s"} left in trial</span>
               ) : null}
             </div>
-            {!billing?.stripe_configured ? (
-              <p className="mt-2 text-xs text-muted">Stripe isn't configured on this server yet, so upgrade checkout isn't available.</p>
+            {!billing?.billing_configured ? (
+              <p className="mt-2 text-xs text-muted">Billing isn't configured on this server yet, so upgrade checkout isn't available.</p>
             ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 onClick={() => upgrade("team")}
-                disabled={checkoutLoading !== null || !billing?.stripe_configured}
+                disabled={checkoutLoading !== null || !billing?.billing_configured}
                 className="control bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
               >
                 {checkoutLoading === "team" ? "Redirecting…" : "Upgrade to Team — $299/mo"}
               </button>
               <button
                 onClick={() => upgrade("business")}
-                disabled={checkoutLoading !== null || !billing?.stripe_configured}
+                disabled={checkoutLoading !== null || !billing?.billing_configured}
                 className="control border border-border px-4 py-2 text-sm font-medium text-[#CCCCCC] disabled:opacity-50"
               >
                 {checkoutLoading === "business" ? "Redirecting…" : "Upgrade to Business — $799/mo"}
