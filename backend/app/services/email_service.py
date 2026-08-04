@@ -1,16 +1,15 @@
 """Outbound transactional email (verification links, password resets).
 
-Sends via SMTP using stdlib smtplib when SMTP_HOST/PORT/USER/PASSWORD are all set. If any of
-those env vars is missing, this never raises - it just logs the email at INFO level so local
-dev and any deployment without SMTP configured still works end to end (the link is visible
-in the server logs instead of an inbox).
+Sends via the Resend API when RESEND_API_KEY is set. If it's missing, this never raises -
+it just logs the email at INFO level so local dev and any deployment without Resend
+configured still works end to end (the link is visible in the server logs instead of an
+inbox).
 """
 from __future__ import annotations
 
 import logging
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
+import resend
 
 from app.core.config import settings
 
@@ -19,28 +18,25 @@ logger = logging.getLogger("quantum2.email")
 
 class EmailService:
     def _is_configured(self) -> bool:
-        return bool(settings.SMTP_HOST and settings.SMTP_PORT and settings.SMTP_USER and settings.SMTP_PASSWORD)
+        return bool(settings.RESEND_API_KEY)
 
     def send(self, to: str, subject: str, body: str) -> bool:
-        """Returns True if actually sent over SMTP, False if it fell back to logging."""
+        """Returns True if actually sent via Resend, False if it fell back to logging."""
         if not self._is_configured():
-            logger.info("EMAIL (SMTP not configured, logging only) to=%s subject=%s body=%s", to, subject, body)
+            logger.info("EMAIL (Resend not configured, logging only) to=%s subject=%s body=%s", to, subject, body)
             return False
 
         try:
-            msg = MIMEMultipart()
-            msg["From"] = settings.SMTP_FROM
-            msg["To"] = to
-            msg["Subject"] = subject
-            msg.attach(MIMEText(body, "plain"))
-
-            with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
-                server.starttls()
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-                server.sendmail(settings.SMTP_FROM, [to], msg.as_string())
+            resend.api_key = settings.RESEND_API_KEY
+            resend.Emails.send({
+                "from": settings.RESEND_FROM_EMAIL,
+                "to": [to],
+                "subject": subject,
+                "text": body,
+            })
             return True
         except Exception:
-            logger.exception("Failed to send email to=%s subject=%s via SMTP; content logged below", to, subject)
+            logger.exception("Failed to send email to=%s subject=%s via Resend; content logged below", to, subject)
             logger.info("EMAIL (send failed, logging only) to=%s subject=%s body=%s", to, subject, body)
             return False
 
