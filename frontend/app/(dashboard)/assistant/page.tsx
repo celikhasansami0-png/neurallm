@@ -88,7 +88,7 @@ export default function AssistantPage() {
       <div className="flex-1 space-y-6 overflow-y-auto pr-1">
         {messages.length === 0 ? (
           <div className="py-16 text-center text-sm text-muted">
-            Ask Quantum² to do something — e.g. "Draft the Q3 board update".
+            Ask Managent to do something — e.g. "Draft the Q3 board update".
           </div>
         ) : null}
         {messages.map((m) =>
@@ -100,7 +100,7 @@ export default function AssistantPage() {
             <div key={m.id} className="max-w-2xl">
               <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[#CCCCCC]">
                 <span className="h-2 w-2 rounded-full bg-[#22C55E] animate-pulse-glow" />
-                {m.agent} · Quantum²
+                {m.agent} · Managent
               </div>
               <div className="card p-4 text-sm text-[#CCCCCC]">
                 <p>{m.content}</p>
@@ -145,7 +145,7 @@ export default function AssistantPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Ask Quantum² anything…"
+          placeholder="Ask Managent anything…"
           disabled={sending}
           className="flex-1 bg-transparent text-sm text-white placeholder:text-muted outline-none disabled:opacity-50"
         />
