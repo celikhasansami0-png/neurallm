@@ -11,7 +11,7 @@ from app.services.scheduler import start_scheduler, stop_scheduler
 
 logger = logging.getLogger("quantum2.main")
 
-app = FastAPI(title="NeuraLLM API", version="0.1.0")
+app = FastAPI(title="Managent API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
