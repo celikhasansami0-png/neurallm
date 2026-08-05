@@ -1,24 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, MessageSquare, Users, ListChecks, ShieldCheck,
   Workflow, BarChart3, Plug, Settings, Plus, Search, ChevronLeft, ChevronRight,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { api } from "@/lib/api";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/assistant", label: "Assistant", icon: MessageSquare },
-  { href: "/agents", label: "Agents", icon: Users },
-  { href: "/tasks", label: "Tasks", icon: ListChecks },
-  { href: "/approvals", label: "Approvals", icon: ShieldCheck, badge: 2 },
-  { href: "/workflows", label: "Workflows", icon: Workflow },
-  { href: "/reports", label: "Reports", icon: BarChart3 },
-  { href: "/integrations", label: "Integrations", icon: Plug },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+function useNavItems(pendingApprovals: number) {
+  const { t } = useI18n();
+  return [
+    { href: "/dashboard", label: t("nav_dashboard"), icon: LayoutDashboard },
+    { href: "/assistant", label: t("nav_assistant"), icon: MessageSquare },
+    { href: "/agents", label: t("nav_agents"), icon: Users },
+    { href: "/tasks", label: t("nav_tasks"), icon: ListChecks },
+    { href: "/approvals", label: t("nav_approvals"), icon: ShieldCheck, badge: pendingApprovals || undefined },
+    { href: "/workflows", label: t("nav_workflows"), icon: Workflow },
+    { href: "/reports", label: t("nav_reports"), icon: BarChart3 },
+    { href: "/integrations", label: t("nav_integrations"), icon: Plug },
+    { href: "/settings", label: t("nav_settings"), icon: Settings },
+  ];
+}
 
 const CHAT_HISTORY = {
   Today: ["Draft Q3 board update", "Summarize investor thread"],
@@ -28,6 +33,21 @@ const CHAT_HISTORY = {
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { t } = useI18n();
+  const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [me, setMe] = useState<any | null>(null);
+  const NAV_ITEMS = useNavItems(pendingApprovals);
+
+  useEffect(() => {
+    api.tasks().then((tasks: any[]) => {
+      setPendingApprovals((tasks || []).filter((t) => t.status === "awaiting_approval").length);
+    }).catch(() => {});
+    api.me().then(setMe).catch(() => {});
+  }, []);
+
+  const initials = me?.full_name
+    ? me.full_name.split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase()
+    : "··";
 
   if (collapsed) {
     return (
@@ -35,7 +55,7 @@ export function Sidebar() {
         <button onClick={() => setCollapsed(false)} className="mb-6 text-muted hover:text-white">
           <ChevronRight size={16} />
         </button>
-        <LogoIcon />
+        <LogoMark />
       </aside>
     );
   }
@@ -43,7 +63,7 @@ export function Sidebar() {
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-border bg-sidebar">
       <div className="flex items-center justify-between px-5 py-5">
-        <LogoIcon />
+        <LogoMark />
         <button onClick={() => setCollapsed(true)} className="text-muted hover:text-white">
           <ChevronLeft size={16} />
         </button>
@@ -53,7 +73,7 @@ export function Sidebar() {
         <div className="control flex items-center gap-2 border border-border bg-[#0A0A0A] px-3 py-2">
           <Search size={14} className="text-muted" />
           <input
-            placeholder="Search agents, tasks…"
+            placeholder={t("search_placeholder")}
             className="w-full bg-transparent text-[13px] text-white placeholder:text-muted outline-none"
           />
           <span className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted">⌘K</span>
@@ -90,10 +110,10 @@ export function Sidebar() {
 
         <div className="mt-4 border-t border-border pt-4">
           <div className="flex items-center justify-between px-3 pb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Chats</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">{t("chats_label")}</span>
           </div>
           <button className="mx-3 mb-3 flex w-[calc(100%-1.5rem)] items-center gap-2 rounded-control border border-border px-3 py-1.5 text-sm text-[#CCCCCC] hover:bg-[#141414]">
-            <Plus size={14} /> New chat
+            <Plus size={14} /> {t("new_chat")}
           </button>
           {Object.entries(CHAT_HISTORY).map(([group, items]) => (
             <div key={group} className="mb-2">
@@ -111,11 +131,11 @@ export function Sidebar() {
       <div className="border-t border-border px-4 py-3">
         <Link href="/settings" className="flex items-center gap-3 rounded-control px-2 py-2 hover:bg-[#141414]">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-semibold text-black">
-            HC
+            {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="truncate text-sm font-medium text-white">Hasan Sami Celik</div>
-            <div className="truncate text-xs text-muted">Admin</div>
+            <div className="truncate text-sm font-medium text-white">{me?.full_name || "…"}</div>
+            <div className="truncate text-xs text-muted">{me?.role || "Member"}</div>
           </div>
         </Link>
       </div>
@@ -123,9 +143,9 @@ export function Sidebar() {
   );
 }
 
-function LogoIcon() {
+function LogoMark() {
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src="/logo-32.png" alt="Quantum²" width={24} height={24} className="rounded-full" />
+    <img src="/logo.png" alt="Managent" style={{ height: 36, width: "auto" }} />
   );
 }
