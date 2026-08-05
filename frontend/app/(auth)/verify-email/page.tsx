@@ -34,8 +34,7 @@ function VerifyEmailContent() {
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-32.png" alt="Quantum²" width={32} height={32} className="rounded-full" />
-          <span className="page-title text-2xl text-white">Quantum²</span>
+          <img src="/logo.png" alt="Managent" style={{ height: 36, width: "auto" }} />
         </div>
         <div className="card p-8 text-center">
           <h1 className="text-xl font-semibold text-white">Email verification</h1>
