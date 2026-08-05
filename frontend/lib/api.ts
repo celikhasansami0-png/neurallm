@@ -3,7 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return window.localStorage.getItem("quantum2_token");
+  return window.localStorage.getItem("managent_token");
 }
 
 export async function apiFetch<T = any>(

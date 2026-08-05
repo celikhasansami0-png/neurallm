@@ -99,7 +99,7 @@ export const mockRecentActivity = [
 export const mockAuditLog = [
   {
     id: "a1", task_id: "t2", actor: "CEO Office", action: "gmail.send_email",
-    risk_level: "high", approved_by: "hasan@quantum2.app", timestamp: "2026-07-31T14:02:00Z",
+    risk_level: "high", approved_by: "hasan@managent.app", timestamp: "2026-07-31T14:02:00Z",
   },
   {
     id: "a2", task_id: "t3", actor: "CTO", action: "github.read_repo",
