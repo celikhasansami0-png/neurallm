@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # CORS
     FRONTEND_URL: str = "http://localhost:3000"
 
-    APP_NAME: str = "NeuraLLM"
+    APP_NAME: str = "Managent"
     ENV: str = "development"
 
     # Lemon Squeezy billing (degrades gracefully / raises a clear error per-feature if unset)
