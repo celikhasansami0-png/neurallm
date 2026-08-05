@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "@/lib/i18n";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const cormorant = Cormorant_Garamond({
@@ -10,9 +12,10 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Quantum² — Your company's AI operating system.",
+  title: "Managent — Your company's AI operating system.",
   description:
-    "Quantum² connects your tools, routes work through a company org chart of AI agents, and keeps every action auditable.",
+    "Managent connects your tools, routes work through a company org chart of AI agents, and keeps every action auditable.",
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/logo-32.png", sizes: "32x32", type: "image/png" },
@@ -22,10 +25,19 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  themeColor: "#0A0A0A",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
-      <body className="font-sans antialiased bg-background text-foreground">{children}</body>
+      <body className="font-sans antialiased bg-background text-foreground">
+        <LanguageProvider>
+          {children}
+          <ServiceWorkerRegister />
+        </LanguageProvider>
+      </body>
     </html>
   );
 }
