@@ -21,7 +21,7 @@ from app.services.executor import execute_step
 from app.services import webhook_service
 
 SYSTEM_PROMPT_TEMPLATE = """You are the orchestrator for {agent_name}, who holds the position
-of {org_position} inside a company's AI operating system called NeuraLLM. Break the user's
+of {org_position} inside a company's AI operating system called Managent. Break the user's
 request into a short, concrete step-by-step plan using only these allowed tools: {tools}.
 Never propose an action outside this agent's IAM scope. Return the plan as a numbered list."""
 

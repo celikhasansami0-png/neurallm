@@ -44,9 +44,9 @@ class EmailService:
         link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
         return self.send(
             to=to,
-            subject="Verify your Quantum² email",
+            subject="Verify your Managent email",
             body=(
-                "Welcome to Quantum².\n\n"
+                "Welcome to Managent.\n\n"
                 f"Verify your email address by visiting:\n{link}\n\n"
                 "This link expires in 24 hours."
             ),
@@ -56,9 +56,9 @@ class EmailService:
         link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
         return self.send(
             to=to,
-            subject="Reset your Quantum² password",
+            subject="Reset your Managent password",
             body=(
-                "We received a request to reset your Quantum² password.\n\n"
+                "We received a request to reset your Managent password.\n\n"
                 f"Reset it by visiting:\n{link}\n\n"
                 "If you didn't request this, you can safely ignore this email. "
                 "This link expires in 1 hour."
