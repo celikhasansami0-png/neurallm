@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { api } from "@/lib/api";
+import { useI18n, LANGUAGES } from "@/lib/i18n";
 
 const PLAN_LABELS: Record<string, string> = { trial: "Trial", team: "Team", business: "Business" };
 
@@ -84,17 +85,33 @@ export default function SettingsPage() {
   }
 
   const trialDaysLeft = billing ? daysLeft(billing.trial_ends_at) : null;
+  const { t, lang, setLang } = useI18n();
 
   return (
     <div>
       <PageHeader title="Settings" subtitle="Company configuration, API access, and notification preferences." />
 
       <div className="card p-5">
+        <div className="text-sm font-semibold text-white">{t("language")}</div>
+        <div className="mt-3">
+          <select
+            value={lang}
+            onChange={(e) => setLang(e.target.value as any)}
+            className="control w-full max-w-xs border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white sm:w-auto"
+          >
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>{l.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="mt-6 card p-5">
         <div className="text-sm font-semibold text-white">Company</div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-xs text-muted">Company name</label>
-            <input defaultValue="Quantum²" className="control w-full border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white" />
+            <input defaultValue="Managent" className="control w-full border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white" />
           </div>
           <div>
             <label className="mb-1 block text-xs text-muted">Plan</label>
@@ -108,7 +125,7 @@ export default function SettingsPage() {
 
       <div className="mt-6 card p-5">
         <div className="text-sm font-semibold text-white">Billing</div>
-        <p className="mt-1 text-xs text-muted">Manage your Quantum² subscription.</p>
+        <p className="mt-1 text-xs text-muted">Manage your Managent subscription.</p>
 
         {billingError ? <p className="mt-2 text-sm text-[#F87171]">{billingError}</p> : null}
 
@@ -150,7 +167,7 @@ export default function SettingsPage() {
 
       <div className="mt-6 card p-5">
         <div className="text-sm font-semibold text-white">API key</div>
-        <p className="mt-1 text-xs text-muted">Use this key to authenticate server-to-server requests against the Quantum² API.</p>
+        <p className="mt-1 text-xs text-muted">Use this key to authenticate server-to-server requests against the Managent API.</p>
         <div className="agent-name control mt-3 flex items-center justify-between border border-border bg-[#111111] px-3 py-2 text-sm text-white">
           <span>q2_live_••••••••••••••••••••3f2a</span>
           <button className="text-xs font-medium text-[#CCCCCC] underline">Reveal</button>
@@ -160,11 +177,11 @@ export default function SettingsPage() {
 
       <div className="mt-6 card p-5">
         <div className="text-sm font-semibold text-white">Webhook URL</div>
-        <p className="mt-1 text-xs text-muted">Quantum² will POST task and approval events here.</p>
+        <p className="mt-1 text-xs text-muted">Managent will POST task and approval events here.</p>
         <div className="mt-3 flex gap-2">
           <input
             value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)}
-            placeholder="https://your-app.com/webhooks/quantum2"
+            placeholder="https://your-app.com/webhooks/managent"
             className="control flex-1 border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white placeholder:text-muted"
           />
           <button onClick={saveWebhook} disabled={webhookSaving} className="control border border-border px-4 py-2 text-sm font-medium text-[#CCCCCC] disabled:opacity-50">
