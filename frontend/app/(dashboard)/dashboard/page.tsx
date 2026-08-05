@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, ListChecks, ShieldCheck, Users } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 const DOT_COLOR: Record<string, string> = {
   completed: "bg-[#22C55E]",
@@ -27,6 +28,7 @@ function timeAgo(iso?: string) {
 }
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const [agents, setAgents] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,31 +102,31 @@ export default function DashboardPage() {
   }, [tasks, agentNameById]);
 
   if (loading) {
-    return <div className="py-20 text-center text-sm text-muted">Loading your dashboard…</div>;
+    return <div className="py-20 text-center text-sm text-muted">{t("loading_dashboard")}</div>;
   }
 
   return (
     <div>
-      <h1 className="page-title text-[38px] text-foreground">Good Morning, {userName}.</h1>
-      <p className="mt-1 text-[13px] text-muted">Here's what's happening today.</p>
+      <h1 className="page-title text-[38px] text-foreground">{t("greeting", { name: userName })}</h1>
+      <p className="mt-1 text-[13px] text-muted">{t("greeting_subtitle")}</p>
       {error ? <p className="mt-2 text-sm text-[#F87171]">{error}</p> : null}
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <MetricCard
-          label="Tasks Completed"
+          label={t("metric_tasks_completed")}
           icon={<ListChecks size={16} className="text-muted" />}
           value={completedCount}
           change={`${tasks.length} total tasks`}
           positive
         />
         <MetricCard
-          label="Pending Approvals"
+          label={t("metric_pending_approvals")}
           icon={<ShieldCheck size={16} className="text-muted" />}
           value={pendingApprovals}
           change="Awaiting review"
         />
         <MetricCard
-          label="Active Agents"
+          label={t("metric_active_agents")}
           icon={<Users size={16} className="text-muted" />}
           value={activeAgents}
           change={activeAgents > 0 ? "All online" : "No agents yet"}
@@ -134,7 +136,7 @@ export default function DashboardPage() {
 
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card p-5">
-          <div className="mb-4 text-sm font-semibold text-white">Task Volume (30 days)</div>
+          <div className="mb-4 text-sm font-semibold text-white">{t("chart_task_volume")} (30 days)</div>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={taskVolume}>
               <CartesianGrid className="dotted-grid" stroke="#1A1A1A" vertical={false} />
@@ -147,7 +149,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="card p-5">
-          <div className="mb-4 text-sm font-semibold text-white">Agent Performance</div>
+          <div className="mb-4 text-sm font-semibold text-white">{t("chart_agent_performance")}</div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={agentPerformance}>
               <CartesianGrid className="dotted-grid" stroke="#1A1A1A" vertical={false} />
@@ -161,9 +163,9 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-8 card p-5">
-        <div className="mb-3 text-sm font-semibold text-white">Recent Activity</div>
+        <div className="mb-3 text-sm font-semibold text-white">{t("recent_activity")}</div>
         {recentActivity.length === 0 ? (
-          <div className="py-6 text-center text-sm text-muted">No activity yet. Create a task to get started.</div>
+          <div className="py-6 text-center text-sm text-muted">{t("no_activity")}</div>
         ) : (
           <div className="divide-y divide-border">
             {recentActivity.map((a) => (
