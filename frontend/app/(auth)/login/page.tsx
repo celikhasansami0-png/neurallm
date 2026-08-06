@@ -20,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res: any = await api.login({ email, password });
-      window.localStorage.setItem("managent_token", res.access_token);
+      window.localStorage.setItem("phratic_token", res.access_token);
       router.push("/dashboard");
     } catch (err: any) {
       setError(t("invalid_credentials"));
@@ -46,7 +46,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Managent" style={{ height: 36, width: "auto" }} />
+          <img src="/logo.png" alt="Phratic" style={{ height: 36, width: "auto" }} />
         </div>
         <div className="card p-8">
           <h1 className="text-xl font-semibold text-white">{t("log_in")}</h1>
@@ -72,7 +72,7 @@ export default function LoginPage() {
           </form>
         </div>
         <p className="mt-4 text-center text-sm text-muted">
-          New to Managent? <Link href="/signup" className="font-medium text-white underline">Create a workspace</Link>
+          New to Phratic? <Link href="/signup" className="font-medium text-white underline">Create a workspace</Link>
         </p>
       </div>
     </div>
