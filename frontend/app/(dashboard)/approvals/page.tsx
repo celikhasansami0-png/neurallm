@@ -5,6 +5,7 @@ import { Clock } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Badge } from "@/components/dashboard/Badge";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 function timeAgo(iso?: string) {
   if (!iso) return "";
@@ -18,6 +19,7 @@ function timeAgo(iso?: string) {
 }
 
 export default function ApprovalsPage() {
+  const { t } = useI18n();
   const [tasks, setTasks] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ export default function ApprovalsPage() {
 
   return (
     <div>
-      <PageHeader title="Approvals" subtitle="High-risk actions pause here until a human signs off." />
+      <PageHeader title={t("nav_approvals")} subtitle={t("page_approvals_subtitle")} />
 
       <div className="mb-6 flex items-center gap-2 rounded-control border border-border bg-[#111111] px-4 py-3 text-sm text-[#CCCCCC]">
         <Clock size={14} className="text-muted" />
