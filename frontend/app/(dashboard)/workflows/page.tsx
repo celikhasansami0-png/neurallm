@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 const ACTIONS = ["Draft document", "Send for approval", "Post update", "Create GitHub issue", "Summarize thread"];
 
 type Step = { agent_id: string; action: string };
 
 export default function WorkflowsPage() {
+  const { t } = useI18n();
   const [agents, setAgents] = useState<any[]>([]);
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +82,7 @@ export default function WorkflowsPage() {
 
   return (
     <div>
-      <PageHeader title="Workflows" subtitle="Chain agents together into a repeatable, ordered sequence." />
+      <PageHeader title={t("page_workflows_title")} subtitle={t("page_workflows_subtitle")} />
 
       {error ? <p className="mb-4 text-sm text-[#F87171]">{error}</p> : null}
 
