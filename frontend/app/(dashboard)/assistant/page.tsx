@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, ChevronUp, ArrowUp } from "lucide-react";
 import { Badge } from "@/components/dashboard/Badge";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 type Message =
   | { id: string; role: "user"; content: string }
   | { id: string; role: "agent"; agent: string; content: string; task: any };
 
 export default function AssistantPage() {
+  const { t } = useI18n();
   const [agents, setAgents] = useState<any[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -77,7 +79,7 @@ export default function AssistantPage() {
     <div className="flex h-[calc(100vh-3rem)] flex-col">
       <div className="mb-4 flex items-center justify-between border-b border-border pb-4">
         <div>
-          <h1 className="text-lg font-bold text-white">Assistant</h1>
+          <h1 className="text-lg font-bold text-white">{t("nav_assistant")}</h1>
           <p className="mt-0.5 text-sm text-muted">{totalStepsUsed} plan steps run this session</p>
         </div>
         {sending ? <Badge value="running">Working</Badge> : null}
