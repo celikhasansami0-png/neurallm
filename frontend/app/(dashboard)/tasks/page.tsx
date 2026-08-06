@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Badge } from "@/components/dashboard/Badge";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -26,6 +27,7 @@ function timeAgo(iso?: string) {
 }
 
 export default function TasksPage() {
+  const { t } = useI18n();
   const [tasks, setTasks] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,8 +84,8 @@ export default function TasksPage() {
   return (
     <div>
       <PageHeader
-        title="Tasks"
-        subtitle="Every task an agent has run or is running, across the company."
+        title={t("page_tasks_title")}
+        subtitle={t("page_tasks_subtitle")}
         action={
           <button className="control flex items-center gap-2 border border-border px-3 py-2 text-sm text-[#CCCCCC]">
             All time <ChevronDown size={14} />
