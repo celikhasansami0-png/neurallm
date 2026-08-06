@@ -3,7 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return window.localStorage.getItem("managent_token");
+  return window.localStorage.getItem("phratic_token");
 }
 
 export async function apiFetch<T = any>(
@@ -44,55 +44,62 @@ export const api = {
   resetPassword: (token: string, new_password: string) =>
     apiFetch("/api/v1/auth/reset-password", { method: "POST", body: JSON.stringify({ token, new_password }) }),
 
-  // Agents
-  agents: () => apiFetch("/api/v1/agents"),
-  createAgent: (body: {
-    name: string; org_position: string; level: number; system_prompt?: string;
-    allowed_tools?: string[]; reports_to?: string | null; color?: string;
-  }) => apiFetch("/api/v1/agents", { method: "POST", body: JSON.stringify(body) }),
-  updateAgent: (id: string, body: any) => apiFetch(`/api/v1/agents/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  deleteAgent: (id: string) => apiFetch(`/api/v1/agents/${id}`, { method: "DELETE" }),
+  // Cariler (customers & suppliers)
+  cariler: (type?: "customer" | "supplier") => apiFetch(`/api/v1/cariler${type ? `?type=${type}` : ""}`),
+  createCari: (body: any) => apiFetch("/api/v1/cariler", { method: "POST", body: JSON.stringify(body) }),
+  updateCari: (id: string, body: any) => apiFetch(`/api/v1/cariler/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteCari: (id: string) => apiFetch(`/api/v1/cariler/${id}`, { method: "DELETE" }),
+  cariStatement: (id: string) => apiFetch(`/api/v1/cariler/${id}/statement`),
 
-  // Tasks
-  tasks: () => apiFetch("/api/v1/tasks"),
-  getTask: (id: string) => apiFetch(`/api/v1/tasks/${id}`),
-  createTask: (body: { agent_id: string; title: string; description?: string }) =>
-    apiFetch("/api/v1/tasks", { method: "POST", body: JSON.stringify(body) }),
-  approveTask: (id: string) => apiFetch(`/api/v1/tasks/${id}/approve`, { method: "POST" }),
-  rejectTask: (id: string) => apiFetch(`/api/v1/tasks/${id}/reject`, { method: "POST" }),
+  // Products
+  products: () => apiFetch("/api/v1/products"),
+  createProduct: (body: any) => apiFetch("/api/v1/products", { method: "POST", body: JSON.stringify(body) }),
+  updateProduct: (id: string, body: any) => apiFetch(`/api/v1/products/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteProduct: (id: string) => apiFetch(`/api/v1/products/${id}`, { method: "DELETE" }),
 
-  // Recurring
-  recurring: () => apiFetch("/api/v1/recurring"),
-  createRecurring: (body: { agent_id: string; title: string; prompt?: string; cron_expression?: string; is_active?: boolean }) =>
-    apiFetch("/api/v1/recurring", { method: "POST", body: JSON.stringify(body) }),
-  updateRecurring: (id: string, body: any) => apiFetch(`/api/v1/recurring/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  deleteRecurring: (id: string) => apiFetch(`/api/v1/recurring/${id}`, { method: "DELETE" }),
+  // Orders (Sipariş / Proforma)
+  orders: (params?: { status?: string; cari_id?: string }) => {
+    const qs = new URLSearchParams(params as any).toString();
+    return apiFetch(`/api/v1/orders${qs ? `?${qs}` : ""}`);
+  },
+  getOrder: (id: string) => apiFetch(`/api/v1/orders/${id}`),
+  createOrder: (body: any) => apiFetch("/api/v1/orders", { method: "POST", body: JSON.stringify(body) }),
+  updateOrderStatus: (id: string, status: string) =>
+    apiFetch(`/api/v1/orders/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) }),
+  deleteOrder: (id: string) => apiFetch(`/api/v1/orders/${id}`, { method: "DELETE" }),
 
-  // Workflows
-  workflows: () => apiFetch("/api/v1/workflows"),
-  createWorkflow: (body: { name: string; chain: { agent_id: string; action: string }[] }) =>
-    apiFetch("/api/v1/workflows", { method: "POST", body: JSON.stringify(body) }),
-  runWorkflow: (id: string) => apiFetch(`/api/v1/workflows/${id}/run`, { method: "PUT" }),
+  // Shipments (Sevkiyat)
+  shipments: (status?: string) => apiFetch(`/api/v1/shipments${status ? `?status=${status}` : ""}`),
+  createShipment: (body: any) => apiFetch("/api/v1/shipments", { method: "POST", body: JSON.stringify(body) }),
+  updateShipmentStatus: (id: string, status: string) =>
+    apiFetch(`/api/v1/shipments/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) }),
+  deleteShipment: (id: string) => apiFetch(`/api/v1/shipments/${id}`, { method: "DELETE" }),
+
+  // Documents (İrsaliye / Fatura)
+  documents: (params?: { order_id?: string; doc_type?: string }) => {
+    const qs = new URLSearchParams(params as any).toString();
+    return apiFetch(`/api/v1/documents${qs ? `?${qs}` : ""}`);
+  },
+  createDocument: (body: { order_id: string; doc_type: "irsaliye" | "fatura" }) =>
+    apiFetch("/api/v1/documents", { method: "POST", body: JSON.stringify(body) }),
+  documentPdfUrl: (id: string) => `${API_URL}/api/v1/documents/${id}/pdf`,
+
+  // Payments
+  payments: (status?: string) => apiFetch(`/api/v1/documents/payments/list${status ? `?status=${status}` : ""}`),
+  createPayment: (body: any) => apiFetch("/api/v1/documents/payments", { method: "POST", body: JSON.stringify(body) }),
+  markPaymentPaid: (id: string) => apiFetch(`/api/v1/documents/payments/${id}/mark-paid`, { method: "PUT" }),
+
+  // Reports
+  reportSalesByCustomer: () => apiFetch("/api/v1/reports/sales-by-customer"),
+  reportPaymentStatus: () => apiFetch("/api/v1/reports/payment-status"),
+  reportShipments: () => apiFetch("/api/v1/reports/shipments"),
+  reportOutstanding: () => apiFetch("/api/v1/reports/outstanding"),
 
   // Integrations
   integrations: () => apiFetch("/api/v1/integrations"),
   connectIntegration: (body: { tool_slug: string; display_name: string; category?: string }) =>
     apiFetch("/api/v1/integrations/connect", { method: "POST", body: JSON.stringify(body) }),
   disconnectIntegration: (id: string) => apiFetch(`/api/v1/integrations/${id}`, { method: "DELETE" }),
-
-  // Knowledge
-  knowledge: () => apiFetch("/api/v1/knowledge"),
-  uploadKnowledge: (file: File) => {
-    const form = new FormData();
-    form.append("file", file);
-    return apiFetch("/api/v1/knowledge", { method: "POST", body: form });
-  },
-  deleteKnowledge: (id: string) => apiFetch(`/api/v1/knowledge/${id}`, { method: "DELETE" }),
-
-  // Audit / ROI
-  audit: () => apiFetch("/api/v1/audit"),
-  replayTask: (taskId: string) => apiFetch(`/api/v1/audit/${taskId}/replay`),
-  roi: () => apiFetch("/api/v1/roi"),
 
   // Webhooks
   getWebhookConfig: () => apiFetch("/api/v1/webhooks/config"),
