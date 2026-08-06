@@ -1,7 +1,7 @@
 {
-  "name": "Managent",
-  "short_name": "Managent",
-  "description": "Managent — your company's AI operating system.",
+  "name": "Phratic",
+  "short_name": "Phratic",
+  "description": "Phratic — B2B operations, orders, and sales management platform.",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0A0A0A",

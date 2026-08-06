@@ -1,4 +1,4 @@
-const CACHE_NAME = "managent-cache-v1";
+const CACHE_NAME = "phratic-cache-v1";
 const CORE_ASSETS = [
   "/dashboard",
   "/manifest.json",
