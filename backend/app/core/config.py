@@ -7,15 +7,13 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:password@localhost:5432/neurallm"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:password@localhost:5432/phratic"
 
     # Supabase
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_KEY: str = ""
 
-    # LLM / integrations
-    GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    # Integrations (OAuth connect only - no AI/agent execution)
     COMPOSIO_API_KEY: str = ""
 
     # Auth
@@ -23,10 +21,14 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
 
+    # Security
+    SESSION_TIMEOUT_MINUTES: int = 30
+    RATE_LIMIT_PER_MINUTE: int = 120
+
     # CORS
     FRONTEND_URL: str = "http://localhost:3000"
 
-    APP_NAME: str = "Managent"
+    APP_NAME: str = "Phratic"
     ENV: str = "development"
 
     # Lemon Squeezy billing (degrades gracefully / raises a clear error per-feature if unset)
