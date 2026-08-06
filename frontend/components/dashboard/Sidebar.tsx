@@ -4,45 +4,36 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, MessageSquare, Users, ListChecks, ShieldCheck,
-  Workflow, BarChart3, Plug, Settings, Plus, Search, ChevronLeft, ChevronRight, HelpCircle,
+  LayoutDashboard, Users, ListChecks, Package, Truck, FileText, BarChart3, Plug, Settings,
+  Search, ChevronLeft, ChevronRight, HelpCircle,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { openOnboardingGuide } from "@/components/OnboardingGuide";
 
-function useNavItems(pendingApprovals: number) {
+function useNavItems() {
   const { t } = useI18n();
   return [
     { href: "/dashboard", label: t("nav_dashboard"), icon: LayoutDashboard },
-    { href: "/assistant", label: t("nav_assistant"), icon: MessageSquare },
-    { href: "/agents", label: t("nav_agents"), icon: Users },
-    { href: "/tasks", label: t("nav_tasks"), icon: ListChecks },
-    { href: "/approvals", label: t("nav_approvals"), icon: ShieldCheck, badge: pendingApprovals || undefined },
-    { href: "/workflows", label: t("nav_workflows"), icon: Workflow },
+    { href: "/cariler", label: t("nav_cariler"), icon: Users },
+    { href: "/siparisler", label: t("nav_orders"), icon: ListChecks },
+    { href: "/urunler", label: t("nav_products"), icon: Package },
+    { href: "/sevkiyat", label: t("nav_shipments"), icon: Truck },
+    { href: "/faturalar", label: t("nav_invoices"), icon: FileText },
     { href: "/reports", label: t("nav_reports"), icon: BarChart3 },
     { href: "/integrations", label: t("nav_integrations"), icon: Plug },
     { href: "/settings", label: t("nav_settings"), icon: Settings },
   ];
 }
 
-const CHAT_HISTORY = {
-  Today: ["Draft Q3 board update", "Summarize investor thread"],
-  Yesterday: ["Triage GitHub issues", "Budget approval review"],
-};
-
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const { t } = useI18n();
-  const [pendingApprovals, setPendingApprovals] = useState(0);
   const [me, setMe] = useState<any | null>(null);
-  const NAV_ITEMS = useNavItems(pendingApprovals);
+  const NAV_ITEMS = useNavItems();
 
   useEffect(() => {
-    api.tasks().then((tasks: any[]) => {
-      setPendingApprovals((tasks || []).filter((t) => t.status === "awaiting_approval").length);
-    }).catch(() => {});
     api.me().then(setMe).catch(() => {});
   }, []);
 
@@ -98,11 +89,6 @@ export function Sidebar() {
                     <Icon size={16} strokeWidth={1.75} />
                     {item.label}
                   </span>
-                  {item.badge ? (
-                    <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-black">
-                      {item.badge}
-                    </span>
-                  ) : null}
                 </Link>
               </li>
             );
@@ -110,29 +96,14 @@ export function Sidebar() {
         </ul>
 
         <div className="mt-4 border-t border-border pt-4">
-          <div className="flex items-center justify-between px-3 pb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">{t("chats_label")}</span>
-            <button
-              onClick={openOnboardingGuide}
-              title={t("open_guide")}
-              className="flex items-center text-muted hover:text-white"
-            >
-              <HelpCircle size={13} />
-            </button>
-          </div>
-          <button className="mx-3 mb-3 flex w-[calc(100%-1.5rem)] items-center gap-2 rounded-control border border-border px-3 py-1.5 text-sm text-[#CCCCCC] hover:bg-[#141414]">
-            <Plus size={14} /> {t("new_chat")}
+          <button
+            onClick={openOnboardingGuide}
+            title={t("open_guide")}
+            className="flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-sm text-[#CCCCCC] hover:bg-[#141414]"
+          >
+            <HelpCircle size={16} strokeWidth={1.75} />
+            {t("open_guide")}
           </button>
-          {Object.entries(CHAT_HISTORY).map(([group, items]) => (
-            <div key={group} className="mb-2">
-              <div className="px-3 py-1 text-[11px] font-medium text-muted">{group}</div>
-              {items.map((title) => (
-                <div key={title} className="truncate px-3 py-1 text-sm text-[#CCCCCC] hover:bg-[#141414] rounded-control cursor-pointer">
-                  {title}
-                </div>
-              ))}
-            </div>
-          ))}
         </div>
       </nav>
 
@@ -154,6 +125,6 @@ export function Sidebar() {
 function LogoMark() {
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src="/logo.png" alt="Managent" style={{ height: 36, width: "auto" }} />
+    <img src="/logo.png" alt="Phratic" style={{ height: 36, width: "auto" }} />
   );
 }
