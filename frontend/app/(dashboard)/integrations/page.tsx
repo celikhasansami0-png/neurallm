@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { IntegrationLogo } from "@/components/dashboard/IntegrationLogo";
 import { Search } from "lucide-react";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 const CATEGORIES = ["All", "Email", "Calendar", "Engineering", "Communication", "Docs", "CRM", "Finance"];
 
@@ -36,6 +37,7 @@ const CATALOG = [
 ];
 
 export default function IntegrationsPage() {
+  const { t } = useI18n();
   const [connections, setConnections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,7 +101,7 @@ export default function IntegrationsPage() {
 
   return (
     <div>
-      <PageHeader title="Integrations" subtitle="Connect the tools your agents need through secure OAuth (powered by Composio)." />
+      <PageHeader title={t("nav_integrations")} subtitle={t("page_integrations_subtitle")} />
 
       {error ? <p className="mb-4 text-sm text-[#F87171]">{error}</p> : null}
 
