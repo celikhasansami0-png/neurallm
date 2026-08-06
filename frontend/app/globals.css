@@ -17,10 +17,30 @@ body {
   background: #111111;
   border: 0.5px solid #1A1A1A;
   border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.015) inset;
+  transition: border-color 150ms ease;
 }
 
 .control {
   border-radius: 8px;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 100ms ease;
+}
+
+.control:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+
+.control:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #0A0A0A, 0 0 0 3.5px rgba(255, 255, 255, 0.5);
+}
+
+a, button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .agent-name {
