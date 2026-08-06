@@ -5,13 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.routers import (
-    agents, audit, auth, billing, integrations, knowledge, recurring, roi, tasks, webhooks, workflows,
+    auth, billing, cari, integrations, invoices, orders, products, reports, shipments, webhooks,
 )
-from app.services.scheduler import start_scheduler, stop_scheduler
 
-logger = logging.getLogger("quantum2.main")
+logger = logging.getLogger("phratic.main")
 
-app = FastAPI(title="Managent API", version="0.1.0")
+app = FastAPI(title="Phratic API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,32 +21,15 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
-app.include_router(agents.router)
-app.include_router(tasks.router)
-app.include_router(recurring.router)
-app.include_router(workflows.router)
+app.include_router(cari.router)
+app.include_router(products.router)
+app.include_router(orders.router)
+app.include_router(shipments.router)
+app.include_router(invoices.router)
+app.include_router(reports.router)
 app.include_router(integrations.router)
-app.include_router(knowledge.router)
-app.include_router(audit.router)
-app.include_router(roi.router)
 app.include_router(webhooks.router)
 app.include_router(billing.router)
-
-
-@app.on_event("startup")
-async def on_startup():
-    try:
-        start_scheduler()
-    except Exception:
-        logger.exception("Failed to start the recurring-task scheduler; recurring tasks will not auto-run.")
-
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    try:
-        stop_scheduler()
-    except Exception:
-        logger.exception("Failed to shut down the recurring-task scheduler cleanly.")
 
 
 @app.get("/")
