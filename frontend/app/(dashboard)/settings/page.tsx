@@ -5,8 +5,6 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { api } from "@/lib/api";
 import { useI18n, LANGUAGES } from "@/lib/i18n";
 
-const PLAN_LABELS: Record<string, string> = { trial: "Trial", team: "Team", business: "Business" };
-
 function daysLeft(iso: string | null) {
   if (!iso) return null;
   const ms = new Date(iso).getTime() - Date.now();
@@ -14,6 +12,9 @@ function daysLeft(iso: string | null) {
 }
 
 export default function SettingsPage() {
+  const { t, lang, setLang } = useI18n();
+  const PLAN_LABELS: Record<string, string> = { trial: "Trial", team: "Team", business: "Business" };
+
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookSaving, setWebhookSaving] = useState(false);
   const [webhookTesting, setWebhookTesting] = useState(false);
@@ -48,7 +49,7 @@ export default function SettingsPage() {
     setWebhookMessage(null);
     try {
       await api.setWebhookConfig(webhookUrl);
-      setWebhookMessage("Saved.");
+      setWebhookMessage(t("save") === "Save" ? "Saved." : t("save") + ".");
     } catch (err: any) {
       setWebhookMessage(err.message || "Failed to save webhook URL.");
     } finally {
@@ -85,14 +86,13 @@ export default function SettingsPage() {
   }
 
   const trialDaysLeft = billing ? daysLeft(billing.trial_ends_at) : null;
-  const { t, lang, setLang } = useI18n();
 
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Company configuration, API access, and notification preferences." />
+      <PageHeader title={t("nav_settings")} subtitle={t("page_settings_subtitle")} />
 
       <div className="card p-5">
-        <div className="text-sm font-semibold text-white">{t("language")}</div>
+        <div className="text-sm font-semibold text-white">{t("section_language")}</div>
         <div className="mt-3">
           <select
             value={lang}
@@ -107,14 +107,14 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-6 card p-5">
-        <div className="text-sm font-semibold text-white">Company</div>
+        <div className="text-sm font-semibold text-white">{t("section_company")}</div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-xs text-muted">Company name</label>
+            <label className="mb-1 block text-xs text-muted">{t("company_name_label")}</label>
             <input defaultValue="Managent" className="control w-full border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white" />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted">Plan</label>
+            <label className="mb-1 block text-xs text-muted">{t("plan_label")}</label>
             <input
               value={billing ? PLAN_LABELS[billing.plan] || billing.plan : "…"} disabled
               className="control w-full border border-border bg-[#111111] px-3 py-2 text-sm text-muted"
@@ -124,26 +124,26 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-6 card p-5">
-        <div className="text-sm font-semibold text-white">Billing</div>
-        <p className="mt-1 text-xs text-muted">Manage your Managent subscription.</p>
+        <div className="text-sm font-semibold text-white">{t("section_billing")}</div>
+        <p className="mt-1 text-xs text-muted">{t("billing_desc")}</p>
 
         {billingError ? <p className="mt-2 text-sm text-[#F87171]">{billingError}</p> : null}
 
         {billingLoading ? (
-          <div className="mt-4 text-sm text-muted">Loading billing status…</div>
+          <div className="mt-4 text-sm text-muted">{t("loading_billing")}</div>
         ) : (
           <>
             <div className="mt-4 flex items-center gap-3">
               <span className="rounded-full border border-border bg-[#1A1A1A] px-3 py-1 text-xs font-medium text-white">
-                {PLAN_LABELS[billing?.plan] || billing?.plan} plan
+                {PLAN_LABELS[billing?.plan] || billing?.plan} {t("plan_suffix")}
               </span>
-              <span className="text-xs text-muted">Status: {billing?.subscription_status}</span>
+              <span className="text-xs text-muted">{t("status_label")}: {billing?.subscription_status}</span>
               {trialDaysLeft !== null ? (
-                <span className="text-xs text-[#F59E0B]">{trialDaysLeft} day{trialDaysLeft === 1 ? "" : "s"} left in trial</span>
+                <span className="text-xs text-[#F59E0B]">{t("trial_days_left", { count: trialDaysLeft })}</span>
               ) : null}
             </div>
             {!billing?.billing_configured ? (
-              <p className="mt-2 text-xs text-muted">Billing isn't configured on this server yet, so upgrade checkout isn't available.</p>
+              <p className="mt-2 text-xs text-muted">{t("billing_not_configured")}</p>
             ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -151,14 +151,14 @@ export default function SettingsPage() {
                 disabled={checkoutLoading !== null || !billing?.billing_configured}
                 className="control bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
               >
-                {checkoutLoading === "team" ? "Redirecting…" : "Upgrade to Team — $299/mo"}
+                {checkoutLoading === "team" ? t("redirecting") : t("upgrade_team")}
               </button>
               <button
                 onClick={() => upgrade("business")}
                 disabled={checkoutLoading !== null || !billing?.billing_configured}
                 className="control border border-border px-4 py-2 text-sm font-medium text-[#CCCCCC] disabled:opacity-50"
               >
-                {checkoutLoading === "business" ? "Redirecting…" : "Upgrade to Business — $799/mo"}
+                {checkoutLoading === "business" ? t("redirecting") : t("upgrade_business")}
               </button>
             </div>
           </>
@@ -166,18 +166,18 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-6 card p-5">
-        <div className="text-sm font-semibold text-white">API key</div>
-        <p className="mt-1 text-xs text-muted">Use this key to authenticate server-to-server requests against the Managent API.</p>
+        <div className="text-sm font-semibold text-white">{t("section_api_key")}</div>
+        <p className="mt-1 text-xs text-muted">{t("api_key_desc")}</p>
         <div className="agent-name control mt-3 flex items-center justify-between border border-border bg-[#111111] px-3 py-2 text-sm text-white">
           <span>q2_live_••••••••••••••••••••3f2a</span>
-          <button className="text-xs font-medium text-[#CCCCCC] underline">Reveal</button>
+          <button className="text-xs font-medium text-[#CCCCCC] underline">{t("reveal")}</button>
         </div>
-        <button className="control mt-2 border border-border px-3 py-1.5 text-xs font-medium text-[#CCCCCC]">Rotate key</button>
+        <button className="control mt-2 border border-border px-3 py-1.5 text-xs font-medium text-[#CCCCCC]">{t("rotate_key")}</button>
       </div>
 
       <div className="mt-6 card p-5">
-        <div className="text-sm font-semibold text-white">Webhook URL</div>
-        <p className="mt-1 text-xs text-muted">Managent will POST task and approval events here.</p>
+        <div className="text-sm font-semibold text-white">{t("section_webhook")}</div>
+        <p className="mt-1 text-xs text-muted">{t("webhook_desc")}</p>
         <div className="mt-3 flex gap-2">
           <input
             value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)}
@@ -185,33 +185,33 @@ export default function SettingsPage() {
             className="control flex-1 border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white placeholder:text-muted"
           />
           <button onClick={saveWebhook} disabled={webhookSaving} className="control border border-border px-4 py-2 text-sm font-medium text-[#CCCCCC] disabled:opacity-50">
-            {webhookSaving ? "Saving…" : "Save"}
+            {webhookSaving ? t("saving") : t("save")}
           </button>
           <button onClick={testWebhook} disabled={webhookTesting} className="control border border-border px-4 py-2 text-sm font-medium text-[#CCCCCC] disabled:opacity-50">
-            {webhookTesting ? "Sending…" : "Send test event"}
+            {webhookTesting ? t("sending") : t("send_test_event")}
           </button>
         </div>
         {webhookMessage ? <p className="mt-2 text-xs text-muted">{webhookMessage}</p> : null}
       </div>
 
       <div className="mt-6 card p-5">
-        <div className="text-sm font-semibold text-white">Notifications</div>
+        <div className="text-sm font-semibold text-white">{t("section_notifications")}</div>
         <div className="mt-3 space-y-2 text-sm text-[#CCCCCC]">
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={notifyEmail} onChange={(e) => setNotifyEmail(e.target.checked)} />
-            Email me when a task needs approval
+            {t("notify_email_label")}
           </label>
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={notifySlack} onChange={(e) => setNotifySlack(e.target.checked)} />
-            Post approval requests to Slack
+            {t("notify_slack_label")}
           </label>
         </div>
       </div>
 
       <div className="mt-6 card border-[#F87171]/30 p-5">
-        <div className="text-sm font-semibold text-[#F87171]">Danger zone</div>
-        <p className="mt-1 text-xs text-muted">Deleting your workspace removes all agents, tasks, and audit history. This cannot be undone.</p>
-        <button className="control mt-3 border border-[#F87171]/30 px-4 py-2 text-sm font-medium text-[#F87171]">Delete workspace</button>
+        <div className="text-sm font-semibold text-[#F87171]">{t("section_danger_zone")}</div>
+        <p className="mt-1 text-xs text-muted">{t("danger_zone_desc")}</p>
+        <button className="control mt-3 border border-[#F87171]/30 px-4 py-2 text-sm font-medium text-[#F87171]">{t("delete_workspace")}</button>
       </div>
     </div>
   );
