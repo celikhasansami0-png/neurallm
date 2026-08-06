@@ -12,9 +12,9 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Managent — Your company's AI operating system.",
+  title: "Phratic — B2B operations & sales management.",
   description:
-    "Managent connects your tools, routes work through a company org chart of AI agents, and keeps every action auditable.",
+    "Phratic manages your customers, orders, products, shipments, and invoices in one place, and connects the tools your business already uses.",
   manifest: "/manifest.json",
   icons: {
     icon: [
