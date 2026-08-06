@@ -2,39 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
-import { IntegrationLogo } from "@/components/dashboard/IntegrationLogo";
+import { IntegrationLogo, INTEGRATION_APPS, appLabel, CATEGORY_BY_APP } from "@/components/dashboard/IntegrationLogo";
 import { Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 
-const CATEGORIES = ["All", "Email", "Calendar", "Engineering", "Communication", "Docs", "CRM", "Finance"];
+const CATEGORIES = ["All", "Communication", "CRM", "Dev Tools", "Productivity", "Finance", "Storage", "Marketing"];
 
-// Catalog of apps a tenant can connect through Composio. Whether each one is actually
-// connected comes from the backend (/api/v1/integrations), not this static list.
-const CATALOG = [
-  { name: "Gmail", slug: "gmail", category: "Email" },
-  { name: "Google Calendar", slug: "googlecalendar", category: "Calendar" },
-  { name: "GitHub", slug: "github", category: "Engineering" },
-  { name: "Slack", slug: "slack", category: "Communication" },
-  { name: "Notion", slug: "notion", category: "Docs" },
-  { name: "Linear", slug: "linear", category: "Engineering" },
-  { name: "Salesforce", slug: "salesforce", category: "CRM" },
-  { name: "HubSpot", slug: "hubspot", category: "CRM" },
-  { name: "Stripe", slug: "stripe", category: "Finance" },
-  { name: "Zoom", slug: "zoom", category: "Communication" },
-  { name: "Google Drive", slug: "googledrive", category: "Docs" },
-  { name: "Jira", slug: "jira", category: "Engineering" },
-  { name: "Airtable", slug: "airtable", category: "Docs" },
-  { name: "Trello", slug: "trello", category: "Engineering" },
-  { name: "Asana", slug: "asana", category: "Engineering" },
-  { name: "ClickUp", slug: "clickup", category: "Engineering" },
-  { name: "Discord", slug: "discord", category: "Communication" },
-  { name: "Figma", slug: "figma", category: "Docs" },
-  { name: "Shopify", slug: "shopify", category: "Finance" },
-  { name: "LinkedIn", slug: "linkedin", category: "Communication" },
-  { name: "Mailchimp", slug: "mailchimp", category: "Email" },
-  { name: "Outlook", slug: "outlook", category: "Email" },
-];
+const CATALOG = INTEGRATION_APPS.map((slug) => ({
+  slug,
+  name: appLabel(slug),
+  category: CATEGORY_BY_APP[slug] || "Productivity",
+}));
 
 export default function IntegrationsPage() {
   const { t } = useI18n();
@@ -73,7 +52,7 @@ export default function IntegrationsPage() {
   );
 
   const connected = filtered.filter((i) => connectedSlugs.has(i.slug));
-  const popular = filtered.filter((i) => !connectedSlugs.has(i.slug));
+  const rest = filtered.filter((i) => !connectedSlugs.has(i.slug));
 
   async function connect(app: (typeof CATALOG)[number]) {
     setConnectingSlug(app.slug);
@@ -126,7 +105,7 @@ export default function IntegrationsPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-muted">Loading integrations…</div>
+        <div className="py-20 text-center text-sm text-muted">{t("loading")}</div>
       ) : (
         <>
           {connected.length > 0 ? (
@@ -146,8 +125,9 @@ export default function IntegrationsPage() {
                       </div>
                       <button
                         onClick={() => conn && disconnect(conn.id)}
-                        className="text-xs font-medium text-[#22C55E] hover:text-[#F87171]"
+                        className="flex items-center gap-1.5 text-xs font-medium text-[#22C55E] hover:text-[#F87171]"
                       >
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]" />
                         Connected
                       </button>
                     </div>
@@ -158,9 +138,9 @@ export default function IntegrationsPage() {
           ) : null}
 
           <div className="mt-8">
-            <div className="mb-3 text-sm font-semibold text-white">Popular</div>
+            <div className="mb-3 text-sm font-semibold text-white">{category === "All" ? "All integrations" : category}</div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {popular.map((i) => (
+              {rest.map((i) => (
                 <div key={i.slug} className="card flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
                     <IntegrationLogo app={i.slug} size={28} />
@@ -178,6 +158,7 @@ export default function IntegrationsPage() {
                   </button>
                 </div>
               ))}
+              {rest.length === 0 ? <div className="col-span-full py-8 text-center text-sm text-muted">{t("empty_state")}</div> : null}
             </div>
           </div>
         </>
