@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 type Agent = {
   id: string;
@@ -17,6 +18,7 @@ type Agent = {
 };
 
 export default function AgentsPage() {
+  const { t } = useI18n();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,8 +91,8 @@ export default function AgentsPage() {
   return (
     <div>
       <PageHeader
-        title="Agents"
-        subtitle="Your company's org chart of AI executors."
+        title={t("page_agents_title")}
+        subtitle={t("page_agents_subtitle")}
         action={
           <div className="flex items-center gap-2">
             <div className="control flex border border-border p-0.5 text-sm">
