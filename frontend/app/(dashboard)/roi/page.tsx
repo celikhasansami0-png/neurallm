@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function ROIRedirect() {
-  redirect("/reports");
+// Deprecated route, removed as part of the Phratic pivot (no AI agents / tasks).
+export default function DeprecatedPage() {
+  redirect("/dashboard");
 }
