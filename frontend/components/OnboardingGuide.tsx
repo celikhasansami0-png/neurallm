@@ -2,22 +2,18 @@
 
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, MessageSquare, Users, ListChecks, ShieldCheck, Workflow, Plug, X,
+  LayoutDashboard, Users, ListChecks, Package, Truck, FileText, X,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-const STEP_ICONS = [
-  LayoutDashboard, MessageSquare, Users, ListChecks, ShieldCheck, Workflow, Plug,
-];
+const STEP_ICONS = [LayoutDashboard, Users, ListChecks, Package, Truck, FileText];
 
-const STEP_KEYS = [
-  "dashboard", "assistant", "agents", "tasks", "approvals", "workflows", "integrations",
-] as const;
+const STEP_KEYS = ["dashboard", "cariler", "orders", "products", "shipments", "invoices"] as const;
 
 function getUserKey(): string {
   if (typeof window === "undefined") return "anon";
   try {
-    const token = window.localStorage.getItem("managent_token");
+    const token = window.localStorage.getItem("phratic_token");
     if (!token) return "anon";
     const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
     return payload.sub || payload.email || "anon";
@@ -27,7 +23,7 @@ function getUserKey(): string {
 }
 
 function guideSeenKey() {
-  return `managent_guide_seen_${getUserKey()}`;
+  return `phratic_guide_seen_${getUserKey()}`;
 }
 
 export function OnboardingGuide() {
@@ -48,8 +44,8 @@ export function OnboardingGuide() {
       setStep(0);
       setOpen(true);
     }
-    window.addEventListener("managent:open-guide", handleOpen);
-    return () => window.removeEventListener("managent:open-guide", handleOpen);
+    window.addEventListener("phratic:open-guide", handleOpen);
+    return () => window.removeEventListener("phratic:open-guide", handleOpen);
   }, []);
 
   function close() {
@@ -128,5 +124,5 @@ export function OnboardingGuide() {
 }
 
 export function openOnboardingGuide() {
-  window.dispatchEvent(new Event("managent:open-guide"));
+  window.dispatchEvent(new Event("phratic:open-guide"));
 }
