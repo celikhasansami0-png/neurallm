@@ -5,10 +5,11 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, MessageSquare, Users, ListChecks, ShieldCheck,
-  Workflow, BarChart3, Plug, Settings, Plus, Search, ChevronLeft, ChevronRight,
+  Workflow, BarChart3, Plug, Settings, Plus, Search, ChevronLeft, ChevronRight, HelpCircle,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
+import { openOnboardingGuide } from "@/components/OnboardingGuide";
 
 function useNavItems(pendingApprovals: number) {
   const { t } = useI18n();
@@ -111,6 +112,13 @@ export function Sidebar() {
         <div className="mt-4 border-t border-border pt-4">
           <div className="flex items-center justify-between px-3 pb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">{t("chats_label")}</span>
+            <button
+              onClick={openOnboardingGuide}
+              title={t("open_guide")}
+              className="flex items-center text-muted hover:text-white"
+            >
+              <HelpCircle size={13} />
+            </button>
           </div>
           <button className="mx-3 mb-3 flex w-[calc(100%-1.5rem)] items-center gap-2 rounded-control border border-border px-3 py-1.5 text-sm text-[#CCCCCC] hover:bg-[#141414]">
             <Plus size={14} /> {t("new_chat")}
