@@ -111,7 +111,7 @@ export default function SettingsPage() {
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-xs text-muted">{t("company_name_label")}</label>
-            <input defaultValue="Managent" className="control w-full border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white" />
+            <input defaultValue="Phratic" className="control w-full border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white" />
           </div>
           <div>
             <label className="mb-1 block text-xs text-muted">{t("plan_label")}</label>
@@ -181,7 +181,7 @@ export default function SettingsPage() {
         <div className="mt-3 flex gap-2">
           <input
             value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)}
-            placeholder="https://your-app.com/webhooks/managent"
+            placeholder="https://your-app.com/webhooks/phratic"
             className="control flex-1 border border-border bg-[#0A0A0A] px-3 py-2 text-sm text-white placeholder:text-muted"
           />
           <button onClick={saveWebhook} disabled={webhookSaving} className="control border border-border px-4 py-2 text-sm font-medium text-[#CCCCCC] disabled:opacity-50">
